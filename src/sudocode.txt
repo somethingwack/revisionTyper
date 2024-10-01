@@ -1,0 +1,17 @@
+input source.txt
+
+if keyboard shortcut,
+
+    (put into a separate thread so an escape shortcut can be checked for while autotyper runs?)
+
+    tokenize source.txt into individual words
+
+    for words,
+
+        if random chance, insert a typo, backspace to typo, continue typing
+        if random chance, if a word ends with a period, pause for roughly 5-15 seconds
+        if a return is typed, pause for 20-30 seconds
+
+    end
+
+
