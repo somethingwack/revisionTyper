@@ -23,6 +23,8 @@ public class revisionTyper {
 
         for (char c : sourcedText.toCharArray()) {
             int code = KeyEvent.getExtendedKeyCodeForChar(c);
+            try { Thread.sleep((int)(Math.random() * 100) + 50); }
+            catch (Exception e) {}
             if (Character.isUpperCase(c))
                 r.keyPress(KeyEvent.VK_SHIFT);
             r.keyPress(code);
@@ -31,11 +33,5 @@ public class revisionTyper {
                 r.keyRelease(KeyEvent.VK_SHIFT);
         }
 
-        /*for (int i = 0; i < sourced.length(); i++) {
-            char c = sourced.charAt(i);
-            System.out.print(c);
-            try { Thread.sleep(10); }
-            catch (Exception e) {}
-        }*/
     }
 }
