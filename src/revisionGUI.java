@@ -13,8 +13,8 @@ public class revisionGUI extends JPanel
     {
         setLayout(new FlowLayout());
 
-        JLabel label = new JLabel("Enter Text Above");
-        Font font = new Font("font1", Font.BOLD, 50);
+        JLabel label = new JLabel("Enter text below, then press run button (4 second delay).");
+        Font font = new Font("font1", Font.BOLD, 20);
         label.setFont(font);
         label.setForeground(Color.WHITE);
         add(label);
@@ -57,10 +57,6 @@ public class revisionGUI extends JPanel
         add(scrollPane);
 
         setBackground(BG2);
-    }
-
-    public static String getInput() {
-        return textArea.getText();
     }
 
     private static class ListenerCLR implements ActionListener
