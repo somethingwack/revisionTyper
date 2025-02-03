@@ -1,30 +1,15 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+
 public class revisionTyper {
-    public static void delay(int delay) {
-        try { Thread.sleep(delay); }
-        catch (Exception e) {}
-    }
+
     public static void delayBetween(int max, int min) {
         try { Thread.sleep((int)(Math.random() * (max - min)) + min); }
         catch (Exception e) {}
     }
-    public static void main(String[] args) throws FileNotFoundException {
 
-        File file = new File("C:\\Users\\FamilyC11\\IdeaProjects\\revisionTyper\\src\\source.txt");
-        Scanner scan = new Scanner(file);
+    public static void type(String sourcedText) {
 
-        String sourcedText= "";
-        while(scan.hasNext()) {
-            sourcedText = sourcedText.concat(scan.nextLine() + "\n");
-        }
-        System.out.println(sourcedText);
-        scan.close();
-
-        delay(3000);
         Robot r = null;
         try {
             r = new Robot(); }
@@ -33,7 +18,7 @@ public class revisionTyper {
         for (char c : sourcedText.toCharArray()) {
             try {
                 int code = KeyEvent.getExtendedKeyCodeForChar(c);
-                    delayBetween(50, 10); // 300 100
+                delayBetween(50, 10); // 300 100
                 if (Character.isUpperCase(c))
                     r.keyPress(KeyEvent.VK_SHIFT);
                 r.keyPress(code);
@@ -125,6 +110,5 @@ public class revisionTyper {
                 r.keyRelease(KeyEvent.VK_SHIFT);
             }
         }
-
     }
 }
