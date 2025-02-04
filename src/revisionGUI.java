@@ -12,7 +12,7 @@ public class revisionGUI extends JPanel
     private static JLabel label = new JLabel();
     private static JLabel sliderLabel;
 
-    private static int sliderVal = 0;
+    private static int sliderVal = 200;
 
     private static JSlider slider = new JSlider();
 
@@ -26,9 +26,15 @@ public class revisionGUI extends JPanel
         label.setForeground(Color.WHITE);
         add(label);
 
-        JSlider slider = new JSlider(JSlider.HORIZONTAL, 100, 800, 500);
+        JSlider slider = new JSlider(JSlider.HORIZONTAL, 50, 300, 200);
+        slider.setMajorTickSpacing(20);
+        slider.setPaintTicks(true);
+        //slider.setSnapToTicks(true);
 
-        JLabel sliderLabel = new JLabel("Typing Speed: 500 ms");
+        slider.setForeground(BG1);
+        slider.setBackground(BG2);
+
+        JLabel sliderLabel = new JLabel("Typing speed approx: 45 WPM");
         sliderLabel.setForeground(Color.WHITE);
 
 
@@ -50,13 +56,14 @@ public class revisionGUI extends JPanel
         add(clear);
         add(close);
         add(submit);
-        add(slider);
-        add(sliderLabel);
+        // " + slider.getValue() + " ms,
+        final double[] WPM = {0.0};
         slider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
                 sliderVal = slider.getValue();
-                sliderLabel.setText("Typing Speed: " + slider.getValue() + " ms");
+                WPM[0] = 5170.77676 * Math.pow(slider.getValue(), -0.887601);
+                sliderLabel.setText("Typing speed approx: " + (int)Math.round(WPM[0]) + " WPM");
             }
         });
 
@@ -77,6 +84,9 @@ public class revisionGUI extends JPanel
         scrollPane.setForeground(BG2);
         scrollPane.setForeground(BG1);
         add(scrollPane);
+
+        add(slider);
+        add(sliderLabel);
 
         setBackground(BG2);
     }
@@ -113,8 +123,8 @@ public class revisionGUI extends JPanel
 
             try { Thread.sleep(5000); }
             catch (Exception a) {}
-
             revisionTyper.type(textArea.getText());
+
         }
     }
 }

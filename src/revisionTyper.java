@@ -1,140 +1,159 @@
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
+
 public class revisionTyper {
 
+    public static boolean ThreadStatus = false;
+
     public static void delayBetween(int max, int min) {
-        try { Thread.sleep((int)(Math.random() * (max - min)) + min); }
-        catch (Exception e) {}
+        try {
+            Thread.sleep((int) (Math.random() * (max - min)) + min);
+        } catch (Exception e) {
+        }
     }
+
     public static int randomBackSpace(Robot r, int i) {
-        int random = (int)(Math.random() * 7) + 1;
+        int random = (int) (Math.random() * 7) + 1;
         //System.out.print(random);
-        for(int o = 0; o < random; o++) {
+        for (int o = 0; o < random; o++) {
             r.keyPress(KeyEvent.VK_BACK_SPACE);
             r.keyRelease(KeyEvent.VK_BACK_SPACE);
 
-            delayBetween(50,150);
+            delayBetween(50, 150);
 
-            if(i > 0) {
+            if (i > 0) {
                 i--;
             }
         }
         return i;
     }
-    public static void type(String sourcedText) {
 
-        Robot r = null;
-        try {
-            r = new Robot(); }
-        catch(java.awt.AWTException awte) {}
+    static class MyThread extends Thread {
 
-        int typingspeed = revisionGUI.getSlider();
-        System.out.print(typingspeed);
-        char c = 0;
-        char[] charArray = sourcedText.toCharArray();
-        for (int i = 0; i < charArray.length; i++) {
+        private String sourcedText;
+
+        public MyThread(String sourcedText){
+            this.sourcedText = sourcedText;
+        }
+        public void run() {
+
+            Robot r = null;
             try {
-                c = charArray[i];
-                int code = KeyEvent.getExtendedKeyCodeForChar(c);
+                r = new Robot();
+            } catch (java.awt.AWTException awte) {
+            }
 
-                delayBetween(typingspeed*2, typingspeed/2); // the delay
+            int typingspeed = revisionGUI.getSlider();
+            System.out.print(typingspeed);
+            char c = 0;
+            char[] charArray = sourcedText.toCharArray();
+            for (int i = 0; i < charArray.length; i++) {
+                try {
+                    c = charArray[i];
+                    int code = KeyEvent.getExtendedKeyCodeForChar(c);
 
-                if (Character.isUpperCase(c))
+                    delayBetween(typingspeed * 2, typingspeed / 2); // the delay
+
+                    if (Character.isUpperCase(c))
+                        r.keyPress(KeyEvent.VK_SHIFT);
+                    r.keyPress(code);
+                    r.keyRelease(code);
+
+                    if (Character.isUpperCase(c))
+                        r.keyRelease(KeyEvent.VK_SHIFT);
+                } catch (IllegalArgumentException e) {
                     r.keyPress(KeyEvent.VK_SHIFT);
-                r.keyPress(code);
-                r.keyRelease(code);
-
-                if (Character.isUpperCase(c))
+                    switch (c) {
+                        case '’':
+                            r.keyRelease(KeyEvent.VK_SHIFT);
+                            r.keyPress(KeyEvent.VK_QUOTE);
+                            break;
+                        case '"':
+                            r.keyPress(KeyEvent.VK_QUOTE);
+                            break;
+                        case ';':
+                            r.keyRelease(KeyEvent.VK_SHIFT);
+                            r.keyPress(KeyEvent.VK_SEMICOLON);
+                            break;
+                        case ':':
+                            r.keyPress(KeyEvent.VK_SEMICOLON);
+                            break;
+                        case '\'':
+                            r.keyRelease(KeyEvent.VK_SHIFT);
+                            r.keyPress(KeyEvent.VK_QUOTE);
+                            break;
+                        case '!':
+                            r.keyPress(KeyEvent.VK_1);
+                            break;
+                        case '+':
+                            r.keyPress(KeyEvent.VK_EQUALS);
+                            break;
+                        case '_':
+                            r.keyPress(KeyEvent.VK_MINUS);
+                            break;
+                        case '?':
+                            r.keyPress(KeyEvent.VK_SLASH);
+                            break;
+                        case ')':
+                            r.keyPress(KeyEvent.VK_0);
+                            break;
+                        case '(':
+                            r.keyPress(KeyEvent.VK_9);
+                            break;
+                        case '@':
+                            r.keyPress(KeyEvent.VK_2);
+                            break;
+                        case '#':
+                            r.keyPress(KeyEvent.VK_3);
+                            break;
+                        case '$':
+                            r.keyPress(KeyEvent.VK_4);
+                            break;
+                        case '%':
+                            r.keyPress(KeyEvent.VK_5);
+                            break;
+                        case '^':
+                            r.keyPress(KeyEvent.VK_6);
+                            break;
+                        case '[':
+                            r.keyPress(KeyEvent.VK_BRACELEFT);
+                            break;
+                        case ']':
+                            r.keyPress(KeyEvent.VK_BRACERIGHT);
+                            break;
+                        case '|':
+                            r.keyPress(KeyEvent.VK_BACK_SLASH);
+                            break;
+                        case '<':
+                            r.keyPress(KeyEvent.VK_PERIOD);
+                            break;
+                        case '>':
+                            r.keyPress(KeyEvent.VK_COMMA);
+                            break;
+                        case '~':
+                            r.keyPress(KeyEvent.VK_BACK_QUOTE);
+                            break;
+                        case '*':
+                            r.keyPress(KeyEvent.VK_8);
+                            break;
+                        default:
+                            r.keyPress(KeyEvent.VK_SLASH); // question mark
+                            //r.keyRelease(KeyEvent.VK_SHIFT);
+                            System.out.println("Unexpected value: " + c);
+                            //throw new IllegalStateException("Unexpected value: " + c);
+                    }
                     r.keyRelease(KeyEvent.VK_SHIFT);
-            }
-            catch(IllegalArgumentException e) {
-                r.keyPress(KeyEvent.VK_SHIFT);
-                switch (c) {
-                    case '’':
-                        r.keyRelease(KeyEvent.VK_SHIFT);
-                        r.keyPress(KeyEvent.VK_QUOTE);
-                        break;
-                    case '"':
-                        r.keyPress(KeyEvent.VK_QUOTE);
-                        break;
-                    case ';':
-                        r.keyRelease(KeyEvent.VK_SHIFT);
-                        r.keyPress(KeyEvent.VK_SEMICOLON);
-                        break;
-                    case ':':
-                        r.keyPress(KeyEvent.VK_SEMICOLON);
-                        break;
-                    case '\'':
-                        r.keyRelease(KeyEvent.VK_SHIFT);
-                        r.keyPress(KeyEvent.VK_QUOTE);
-                        break;
-                    case '!':
-                        r.keyPress(KeyEvent.VK_1);
-                        break;
-                    case '+':
-                        r.keyPress(KeyEvent.VK_EQUALS);
-                        break;
-                    case '_':
-                        r.keyPress(KeyEvent.VK_MINUS);
-                        break;
-                    case '?':
-                        r.keyPress(KeyEvent.VK_SLASH);
-                        break;
-                    case ')':
-                        r.keyPress(KeyEvent.VK_0);
-                        break;
-                    case '(':
-                        r.keyPress(KeyEvent.VK_9);
-                        break;
-                    case '@':
-                        r.keyPress(KeyEvent.VK_2);
-                        break;
-                    case '#':
-                        r.keyPress(KeyEvent.VK_3);
-                        break;
-                    case '$':
-                        r.keyPress(KeyEvent.VK_4);
-                        break;
-                    case '%':
-                        r.keyPress(KeyEvent.VK_5);
-                        break;
-                    case '^':
-                        r.keyPress(KeyEvent.VK_6);
-                        break;
-                    case '[':
-                        r.keyPress(KeyEvent.VK_BRACELEFT);
-                        break;
-                    case ']':
-                        r.keyPress(KeyEvent.VK_BRACERIGHT);
-                        break;
-                    case '|':
-                        r.keyPress(KeyEvent.VK_BACK_SLASH);
-                        break;
-                    case '<':
-                        r.keyPress(KeyEvent.VK_PERIOD);
-                        break;
-                    case '>':
-                        r.keyPress(KeyEvent.VK_COMMA);
-                        break;
-                    case '~':
-                        r.keyPress(KeyEvent.VK_BACK_QUOTE);
-                        break;
-                    case '*':
-                        r.keyPress(KeyEvent.VK_8);
-                        break;
-                    default:
-                        r.keyPress(KeyEvent.VK_SLASH); // question mark
-                        //r.keyRelease(KeyEvent.VK_SHIFT);
-                        System.out.println("Unexpected value: " + c);
-                        //throw new IllegalStateException("Unexpected value: " + c);
                 }
-                r.keyRelease(KeyEvent.VK_SHIFT);
-            }
-            if((int)(Math.random() * 60) == 0 && i > 10) {
-                //r.keyPress((int)(Math.random() * 24) + 1);
-                //i = randomBackSpace(r, i);
+                if ((int) (Math.random() * 50) == 0 && i > 10) {
+                    r.keyPress((int)(Math.random() * 24) + 1);
+                    i = randomBackSpace(r, i);
+                }
             }
         }
+    }
+    public static void type(String sourcedText) {
+        MyThread thread = new MyThread(sourcedText);
+        thread.start();
     }
 }
