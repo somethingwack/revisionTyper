@@ -7,7 +7,21 @@ public class revisionTyper {
         try { Thread.sleep((int)(Math.random() * (max - min)) + min); }
         catch (Exception e) {}
     }
+    public static int randomBackSpace(Robot r, int i) {
+        int random = (int)(Math.random() * 7) + 1;
+        //System.out.print(random);
+        for(int o = 0; o < random; o++) {
+            r.keyPress(KeyEvent.VK_BACK_SPACE);
+            r.keyRelease(KeyEvent.VK_BACK_SPACE);
 
+            delayBetween(50,150);
+
+            if(i > 0) {
+                i--;
+            }
+        }
+        return i;
+    }
     public static void type(String sourcedText) {
 
         Robot r = null;
@@ -15,14 +29,22 @@ public class revisionTyper {
             r = new Robot(); }
         catch(java.awt.AWTException awte) {}
 
-        for (char c : sourcedText.toCharArray()) {
+        int typingspeed = revisionGUI.getSlider();
+        System.out.print(typingspeed);
+        char c = 0;
+        char[] charArray = sourcedText.toCharArray();
+        for (int i = 0; i < charArray.length; i++) {
             try {
+                c = charArray[i];
                 int code = KeyEvent.getExtendedKeyCodeForChar(c);
-                delayBetween(50, 10); // 300 100
+
+                delayBetween(typingspeed*2, typingspeed/2); // the delay
+
                 if (Character.isUpperCase(c))
                     r.keyPress(KeyEvent.VK_SHIFT);
                 r.keyPress(code);
                 r.keyRelease(code);
+
                 if (Character.isUpperCase(c))
                     r.keyRelease(KeyEvent.VK_SHIFT);
             }
@@ -108,6 +130,10 @@ public class revisionTyper {
                         //throw new IllegalStateException("Unexpected value: " + c);
                 }
                 r.keyRelease(KeyEvent.VK_SHIFT);
+            }
+            if((int)(Math.random() * 60) == 0 && i > 10) {
+                //r.keyPress((int)(Math.random() * 24) + 1);
+                //i = randomBackSpace(r, i);
             }
         }
     }

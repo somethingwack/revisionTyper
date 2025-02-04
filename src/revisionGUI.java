@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -8,6 +10,11 @@ public class revisionGUI extends JPanel
     private final Color BG1 = new Color(45, 45, 45);
     private final Color BG2 = new Color(20, 20, 20);
     private static JLabel label = new JLabel();
+    private static JLabel sliderLabel;
+
+    private static int sliderVal = 0;
+
+    private static JSlider slider = new JSlider();
 
     public revisionGUI()
     {
@@ -18,6 +25,12 @@ public class revisionGUI extends JPanel
         label.setFont(font);
         label.setForeground(Color.WHITE);
         add(label);
+
+        JSlider slider = new JSlider(JSlider.HORIZONTAL, 100, 800, 500);
+
+        JLabel sliderLabel = new JLabel("Typing Speed: 500 ms");
+        sliderLabel.setForeground(Color.WHITE);
+
 
         JButton clear = new JButton("Clear");
         clear.addActionListener(new ListenerCLR());
@@ -37,6 +50,15 @@ public class revisionGUI extends JPanel
         add(clear);
         add(close);
         add(submit);
+        add(slider);
+        add(sliderLabel);
+        slider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                sliderVal = slider.getValue();
+                sliderLabel.setText("Typing Speed: " + slider.getValue() + " ms");
+            }
+        });
 
         textArea = new JTextArea(15, 90);
         textArea.setWrapStyleWord(false);
@@ -65,6 +87,10 @@ public class revisionGUI extends JPanel
         {
             textArea.setText("");
         }
+    }
+
+    public static int getSlider() {
+        return sliderVal;
     }
 
     private static class ListenerCLS implements ActionListener
