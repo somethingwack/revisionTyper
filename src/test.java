@@ -1,10 +1,20 @@
+import java.util.ArrayList;
+
 public class test {
     public static void main(String[] args) {
-        for(int i = 0; i <= 25; i++)
-            System.out.println((char)(i + 97));
-            //System.out.println((char)((int)(Math.random() * 25) + 97));
+        ArrayList<String> list = new ArrayList<String>();
+        list.add("a");
+        list.add("b");
+        list.add("c");
 
-        //System.out.println((char)97);
+        int numRepeats = 3;
+        int size = list.size();
+        for(int i = 1; i <= numRepeats - 1; i++) {
+            for(int o = 0; o < size - 1; o++) {
+                list.add(list.get(o));
+            }
+        }
+        System.out.println(list.toString());
 
     }
 }

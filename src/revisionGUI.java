@@ -7,8 +7,6 @@ import java.awt.event.*;
 public class revisionGUI extends JPanel
 {
     private static JTextArea textArea = new JTextArea();
-    private final Color BG1 = new Color(45, 45, 45);
-    private final Color BG2 = new Color(20, 20, 20);
     private static JLabel label = new JLabel();
     private static JLabel sliderLabel;
 
@@ -19,23 +17,23 @@ public class revisionGUI extends JPanel
     {
         setLayout(new FlowLayout());
 
-        JLabel label = new JLabel("Enter text below, then press run button (4 second delay).");
-        Font font = new Font("font1", Font.BOLD, 20);
+        JLabel label = new JLabel("Enter text below, then press run button (4 second delay).    ");
+        Font font = new Font("font1", Font.BOLD, 10);
+        Color BG2 = new Color(20, 20, 20);
+        label.setBackground(BG2);
         label.setFont(font);
         label.setForeground(Color.WHITE);
         add(label);
 
         JSlider slider = new JSlider(JSlider.HORIZONTAL, 50, 300, 200);
         slider.setMajorTickSpacing(20);
-        slider.setPaintTicks(true);
-        //slider.setSnapToTicks(true);
 
+        Color BG1 = new Color(45, 45, 45);
         slider.setForeground(BG1);
         slider.setBackground(BG2);
 
         JLabel sliderLabel = new JLabel("Typing speed approx: 45 WPM");
         sliderLabel.setForeground(Color.WHITE);
-
 
         JButton clear = new JButton("Clear");
         clear.addActionListener(new ListenerCLR());
@@ -48,15 +46,21 @@ public class revisionGUI extends JPanel
         close.setForeground(Color.WHITE);
 
         JButton submit = new JButton("Run");
-        submit.addActionListener(new ListenerSUB(submit));
-        //submit.addActionListener(new ListenerSUB(submit));
+        submit.addActionListener(new ListenerSUB());
         submit.setBackground(BG1);
-        submit.setForeground(Color.WHITE);
+        submit.setForeground(Color.GREEN);
 
-        add(clear);
+        JButton stop = new JButton("Stop");
+        stop.addActionListener(new ListenerSTOP());
+        stop.setBackground(BG1);
+        stop.setForeground(Color.RED);
+
+
         add(close);
+        add(clear);
         add(submit);
-        // " + slider.getValue() + " ms,
+        add(stop);
+
         final double[] WPM = {0.0};
         slider.addChangeListener(new ChangeListener() {
             @Override
@@ -67,7 +71,7 @@ public class revisionGUI extends JPanel
             }
         });
 
-        textArea = new JTextArea(15, 90);
+        textArea = new JTextArea(10, 60);
         textArea.setWrapStyleWord(false);
         textArea.setLineWrap(true);
         textArea.setOpaque(true);
@@ -75,7 +79,7 @@ public class revisionGUI extends JPanel
         textArea.setFocusable(true);
         textArea.setBackground(BG1);
         textArea.setForeground(Color.WHITE);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 15));
         textArea.setBorder(UIManager.getBorder("Label.border"));
         add(textArea);
 
@@ -88,7 +92,7 @@ public class revisionGUI extends JPanel
         add(slider);
         add(sliderLabel);
 
-        setBackground(BG2);
+        setBackground(Color.getHSBColor(0,1, 0.20F));
     }
 
     private static class ListenerCLR implements ActionListener
@@ -118,21 +122,21 @@ public class revisionGUI extends JPanel
 
     private static class ListenerSUB implements ActionListener
     {
-        private JButton button;
-
-        public ListenerSUB(JButton button) {
-          this.button = button;
-        }
         public void actionPerformed(ActionEvent e)
         {
 
-            try { Thread.sleep(5000); }
-            catch (Exception a) {}
-            revisionTyper.type(textArea.getText());
-            button.setText("Stop");
-            button.setBackground(Color.getHSBColor(5,100,61));
-            //change button name to Stop and change color
-
+            if(!revisionTyper.getStatus()) { // only run if thread is stopped
+                revisionTyper.type(textArea.getText());
+            }
+        }
+    }
+    private static class ListenerSTOP implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            if(revisionTyper.getStatus()) { // only run if thread is started
+                revisionTyper.stopType();
+            }
         }
     }
 }

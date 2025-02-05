@@ -6,6 +6,12 @@ public class revisionTyper {
 
     public static boolean ThreadStatus = false;
 
+    private static MyThread thread = null;
+
+    public static boolean getStatus() {
+        return ThreadStatus;
+    }
+
     public static void delayBetween(int max, int min) {
         try {
             Thread.sleep((int) (Math.random() * (max - min)) + min);
@@ -15,7 +21,7 @@ public class revisionTyper {
 
     public static int randomBackSpace(Robot r, int i) {
         int random = (int) (Math.random() * 7) + 1;
-        //System.out.print(random);
+        System.out.print(random);
         for (int o = 0; o < random; o++) {
             r.keyPress(KeyEvent.VK_BACK_SPACE);
             r.keyRelease(KeyEvent.VK_BACK_SPACE);
@@ -37,18 +43,29 @@ public class revisionTyper {
             this.sourcedText = sourcedText;
         }
         public void run() {
+            ThreadStatus = true;
+
+            try {
+                Thread.sleep(5000);
+            } catch (Exception ignored) {
+            }
 
             Robot r = null;
             try {
                 r = new Robot();
-            } catch (java.awt.AWTException awte) {
+            } catch (java.awt.AWTException ignored) {
             }
 
             int typingspeed = revisionGUI.getSlider();
-            System.out.print(typingspeed);
+
             char c = 0;
             char[] charArray = sourcedText.toCharArray();
             for (int i = 0; i < charArray.length; i++) {
+
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
+
                 try {
                     c = charArray[i];
                     int code = KeyEvent.getExtendedKeyCodeForChar(c);
@@ -177,17 +194,25 @@ public class revisionTyper {
                     }
                     r.keyRelease(KeyEvent.VK_SHIFT);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    break;
                 }
                 if ((int) (Math.random() * 50) == 0 && i > 10) {
                     //r.keyPress((int)(Math.random() * 25) + 97); // < may not function properly
                     //i = randomBackSpace(r, i);
                 }
             }
+
+            ThreadStatus = false;
         }
     }
+
     public static void type(String sourcedText) {
-        MyThread thread = new MyThread(sourcedText);
+        thread = new MyThread(sourcedText);
         thread.start();
+    }
+
+    public static void stopType() {
+        if (thread != null)
+            thread.interrupt();
     }
 }
