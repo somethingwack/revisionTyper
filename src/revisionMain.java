@@ -6,7 +6,7 @@ public class revisionMain {
         // GUI
         JFrame frame = new JFrame("revision typer");
         frame.setLocation(100, 100);
-        frame.setSize(1060, 500);
+                frame.setSize(1060, 500);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setContentPane(new revisionGUI());
         frame.setVisible(true);

@@ -13,7 +13,6 @@ public class revisionGUI extends JPanel
     private static JLabel sliderLabel;
 
     private static int sliderVal = 200;
-
     private static JSlider slider = new JSlider();
 
     public revisionGUI()
@@ -49,7 +48,8 @@ public class revisionGUI extends JPanel
         close.setForeground(Color.WHITE);
 
         JButton submit = new JButton("Run");
-        submit.addActionListener(new ListenerSUB());
+        submit.addActionListener(new ListenerSUB(submit));
+        //submit.addActionListener(new ListenerSUB(submit));
         submit.setBackground(BG1);
         submit.setForeground(Color.WHITE);
 
@@ -118,12 +118,20 @@ public class revisionGUI extends JPanel
 
     private static class ListenerSUB implements ActionListener
     {
+        private JButton button;
+
+        public ListenerSUB(JButton button) {
+          this.button = button;
+        }
         public void actionPerformed(ActionEvent e)
         {
 
             try { Thread.sleep(5000); }
             catch (Exception a) {}
             revisionTyper.type(textArea.getText());
+            button.setText("Stop");
+            button.setBackground(Color.getHSBColor(5,100,61));
+            //change button name to Stop and change color
 
         }
     }
