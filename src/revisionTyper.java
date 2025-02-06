@@ -18,7 +18,6 @@ public class revisionTyper {
     }
     public static void setTypoToggle(boolean value) {
         typoToggle = value;
-        System.out.println("Feature enabled: " + typoToggle);
     }
 
     public static void delayBetween(int max, int min) {
