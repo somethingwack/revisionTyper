@@ -55,6 +55,14 @@ public class revisionGUI extends JPanel
         stop.setBackground(BG1);
         stop.setForeground(Color.RED);
 
+        JCheckBox typo = new JCheckBox("Automatic Typos");
+        typo.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                boolean isChecked = e.getStateChange() == ItemEvent.SELECTED;
+                revisionTyper.setTypoToggle(isChecked);
+            }
+        });
 
         add(close);
         add(clear);

@@ -12,6 +12,15 @@ public class revisionTyper {
         return ThreadStatus;
     }
 
+    private static boolean typoToggle = false;
+    public static boolean isTypoToggle() {
+        return typoToggle;
+    }
+    public static void setTypoToggle(boolean value) {
+        typoToggle = value;
+        System.out.println("Feature enabled: " + typoToggle);
+    }
+
     public static void delayBetween(int max, int min) {
         try {
             Thread.sleep((int) (Math.random() * (max - min)) + min);
@@ -19,18 +28,22 @@ public class revisionTyper {
         }
     }
 
-    public static int randomBackSpace(Robot r, int i) {
-        int random = (int) (Math.random() * 7) + 1;
-        System.out.print(random);
+    public static int randomBackSpace(Robot r, int i) throws InterruptedException {
+        int random = (int)(Math.random() * 4) + 1;
+        int typorandom = (int)(Math.random() * 25) + 97;
+        r.keyPress(KeyEvent.getExtendedKeyCodeForChar((char)(typorandom)));
+        Thread.sleep(76 + (int)(Math.random() * 44) - 22);
+        r.keyRelease(KeyEvent.getExtendedKeyCodeForChar((char)(typorandom)));
+        i++;
+        delayBetween(700, 500);
+
         for (int o = 0; o < random; o++) {
             r.keyPress(KeyEvent.VK_BACK_SPACE);
+            Thread.sleep(76 + (int)(Math.random() * 44) - 22);
             r.keyRelease(KeyEvent.VK_BACK_SPACE);
-
             delayBetween(50, 150);
 
-            if (i > 0) {
-                i--;
-            }
+            i--;
         }
         return i;
     }
@@ -196,9 +209,13 @@ public class revisionTyper {
                 } catch (InterruptedException e) {
                     break;
                 }
-                if ((int) (Math.random() * 50) == 0 && i > 10) {
-                    //r.keyPress((int)(Math.random() * 25) + 97); // < may not function properly
-                    //i = randomBackSpace(r, i);
+                if (((int) (Math.random() * 50) == 0 && i > 10) && isTypoToggle()) {
+                    try {
+                        System.out.println(i);
+                        i = randomBackSpace(r, i);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
 
