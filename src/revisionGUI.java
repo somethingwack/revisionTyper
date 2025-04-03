@@ -63,8 +63,6 @@ public class revisionGUI extends JPanel
                 revisionTyper.setTypoToggle(isChecked);
             }
         });
-        typo.setBackground(BG1);
-        typo.setForeground(Color.WHITE);
 
         add(close);
         add(clear);
@@ -98,8 +96,6 @@ public class revisionGUI extends JPanel
         scrollPane.setForeground(BG2);
         scrollPane.setForeground(BG1);
         add(scrollPane);
-
-        add(typo);
 
         add(slider);
         add(sliderLabel);
