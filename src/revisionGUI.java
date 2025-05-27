@@ -7,11 +7,13 @@ import java.awt.event.*;
 public class revisionGUI extends JPanel
 {
     private static JTextArea textArea = new JTextArea();
-    private static JLabel label = new JLabel();
-    private static JLabel sliderLabel;
+    //private static final JLabel label = new JLabel();
+    //private static JLabel sliderLabel;
 
     private static int sliderVal = 200;
-    private static JSlider slider = new JSlider();
+    public static boolean realisticDelays = true;
+    public static boolean typoToggle;
+    //private static final JSlider slider = new JSlider();
 
     public revisionGUI()
     {
@@ -25,7 +27,7 @@ public class revisionGUI extends JPanel
         label.setForeground(Color.WHITE);
         add(label);
 
-        JSlider slider = new JSlider(JSlider.HORIZONTAL, 50, 300, 200);
+        JSlider slider = new JSlider(JSlider.HORIZONTAL, 5, 500, 250);
         slider.setMajorTickSpacing(20);
 
         Color BG1 = new Color(45, 45, 45);
@@ -56,28 +58,43 @@ public class revisionGUI extends JPanel
         stop.setForeground(Color.RED);
 
         JCheckBox typo = new JCheckBox("Automatic Typos");
-        typo.addItemListener(new ItemListener() {
+        typo.addActionListener(new ActionListener() {
             @Override
-            public void itemStateChanged(ItemEvent e) {
-                boolean isChecked = e.getStateChange() == ItemEvent.SELECTED;
-                revisionTyper.setTypoToggle(isChecked);
+            public void actionPerformed(ActionEvent e) {
+                if(typo.isSelected())
+                    typoToggle = true;
+                else
+                    typoToggle = false;
             }
         });
         typo.setBackground(BG1);
         typo.setForeground(Color.WHITE);
 
+        JCheckBox delays = new JCheckBox("Realistic Delays", true);
+        delays.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(delays.isSelected())
+                    realisticDelays = true;
+                else
+                    realisticDelays = false;
+            }
+        });
+        delays.setBackground(BG1);
+        delays.setForeground(Color.WHITE);
+
         add(close);
         add(clear);
         add(submit);
         add(stop);
-
+        // + "MS: " + slider.getValue()
         final double[] WPM = {0.0};
         slider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
                 sliderVal = slider.getValue();
-                WPM[0] = 5170.77676 * Math.pow(slider.getValue(), -0.887601);
-                sliderLabel.setText("Typing speed approx: " + (int)Math.round(WPM[0]) + " WPM");
+                WPM[0] = 167.06899 - 24.36022 * Math.log(slider.getValue());
+                sliderLabel.setText("Approx typing speed: " + (int)Math.round(WPM[0]) + " WPM");
             }
         });
 
@@ -100,6 +117,7 @@ public class revisionGUI extends JPanel
         add(scrollPane);
 
         add(typo);
+        add(delays);
 
         add(slider);
         add(sliderLabel);
@@ -115,10 +133,6 @@ public class revisionGUI extends JPanel
         }
     }
 
-    public static int getSlider() {
-        return sliderVal;
-    }
-
     private static class ListenerCLS implements ActionListener
     {
         public void actionPerformed(ActionEvent e)
@@ -126,7 +140,7 @@ public class revisionGUI extends JPanel
             SwingUtilities.invokeLater(
                     () -> {
                         try { Thread.sleep(1000); }
-                        catch (Exception d) {}
+                        catch (Exception ignored) {}
                         Runtime.getRuntime().exit(1);
                     });
         }
@@ -142,6 +156,7 @@ public class revisionGUI extends JPanel
             }
         }
     }
+
     private static class ListenerSTOP implements ActionListener
     {
         public void actionPerformed(ActionEvent e)
@@ -151,4 +166,9 @@ public class revisionGUI extends JPanel
             }
         }
     }
+    
+    public static int getSlider() {
+        return sliderVal;
+    }
 }
+
