@@ -4,6 +4,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 
+
 public class revisionGUI extends JPanel
 {
     private static JTextArea textArea = new JTextArea();
@@ -13,10 +14,14 @@ public class revisionGUI extends JPanel
     private static int sliderVal = 200;
     public static boolean realisticDelays = true;
     public static boolean typoToggle;
-    //private static final JSlider slider = new JSlider();
+    private static ImageIcon revision;
+    private static JLabel image;
 
-    public revisionGUI()
-    {
+    public revisionGUI() {
+        DrawUI();
+    }
+
+    private void DrawUI() {
         setLayout(new FlowLayout());
 
         JLabel label = new JLabel("Enter text below, then press run button (4 second delay).    ");
@@ -26,6 +31,11 @@ public class revisionGUI extends JPanel
         label.setFont(font);
         label.setForeground(Color.WHITE);
         add(label);
+
+//        revision = new ImageIcon("revision.png");
+//        image = new JLabel();
+//        image.setBounds(0,0,30,30);
+//        image.setIcon(revision);
 
         JSlider slider = new JSlider(JSlider.HORIZONTAL, 5, 500, 250);
         slider.setMajorTickSpacing(20);
@@ -42,20 +52,21 @@ public class revisionGUI extends JPanel
         clear.setBackground(BG1);
         clear.setForeground(Color.WHITE);
 
-        JButton close = new JButton("Close");
+        /*JButton close = new JButton("Close");
         close.addActionListener(new ListenerCLS());
         close.setBackground(BG1);
         close.setForeground(Color.WHITE);
+         */
 
         JButton submit = new JButton("Run");
         submit.addActionListener(new ListenerSUB());
         submit.setBackground(BG1);
-        submit.setForeground(Color.GREEN);
+        submit.setForeground(new Color(0,200,0));
 
         JButton stop = new JButton("Stop");
         stop.addActionListener(new ListenerSTOP());
         stop.setBackground(BG1);
-        stop.setForeground(Color.RED);
+        stop.setForeground(new Color(200,0,0));
 
         JCheckBox typo = new JCheckBox("Automatic Typos");
         typo.addActionListener(new ActionListener() {
@@ -83,7 +94,6 @@ public class revisionGUI extends JPanel
         delays.setBackground(BG1);
         delays.setForeground(Color.WHITE);
 
-        add(close);
         add(clear);
         add(submit);
         add(stop);
@@ -98,7 +108,7 @@ public class revisionGUI extends JPanel
             }
         });
 
-        textArea = new JTextArea(10, 60);
+        textArea = new JTextArea(13, 90);
         textArea.setWrapStyleWord(false);
         textArea.setLineWrap(true);
         textArea.setOpaque(true);
@@ -106,7 +116,7 @@ public class revisionGUI extends JPanel
         textArea.setFocusable(true);
         textArea.setBackground(BG1);
         textArea.setForeground(Color.WHITE);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 10));
         textArea.setBorder(UIManager.getBorder("Label.border"));
         add(textArea);
 
@@ -122,7 +132,8 @@ public class revisionGUI extends JPanel
         add(slider);
         add(sliderLabel);
 
-        setBackground(Color.getHSBColor(0,1, 0.20F));
+        setBackground(new Color(20, 0, 0));
+
     }
 
     private static class ListenerCLR implements ActionListener

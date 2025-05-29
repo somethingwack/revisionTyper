@@ -1,5 +1,8 @@
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
 
 
 public class revisionTyper {
@@ -13,14 +16,11 @@ public class revisionTyper {
     }
 
     // Delay utility
-    public static void delayBetween(int max, int min) {
-        try {
+    public static void delayBetween(int max, int min) throws InterruptedException{
             Thread.sleep((int) (Math.random() * (max - min)) + min);
-        } catch (Exception e) {
-        }
     }
 
-    // Utility for typing extra character
+    // Utility for typing characters that require shift to be held
     public static void extraCharacters(Robot r, char c) {
             r.keyPress(KeyEvent.VK_SHIFT);
             switch (c) {
@@ -136,17 +136,18 @@ public class revisionTyper {
         r.keyRelease(KeyEvent.VK_SHIFT);
     }
 
-    // Utility for realistic typos
-    public static int randomBackSpace(Robot r, int i) throws InterruptedException {
+    // Utility for simulatin typos
+    public static int[] randomBackSpace(Robot r, int i, char[] charArray, int wordsIndex) throws InterruptedException {
         int random = (int)(Math.random() * 4) + 1;
         int typorandom = (int)(Math.random() * 25) + 97;
+        int[] temp = new int[2];
 
         r.keyPress(KeyEvent.getExtendedKeyCodeForChar((char)(typorandom)));
-            Thread.sleep(76 + (int)(Math.random() * 44) - 22);
+        Thread.sleep(76 + (int)(Math.random() * 44) - 22);
         r.keyRelease(KeyEvent.getExtendedKeyCodeForChar((char)(typorandom)));
         i++;
 
-            delayBetween(500, 300);
+        delayBetween(500, 300);
 
         for (int o = 0; o < random; o++) {
             r.keyPress(KeyEvent.VK_BACK_SPACE);
@@ -155,8 +156,27 @@ public class revisionTyper {
             delayBetween(50, 150);
 
             i--;
+            if(charArray[i] == ' ') {
+                wordsIndex--;
+            }
         }
-        return i;
+
+        temp[0] = i;
+        temp[1] = wordsIndex;
+        return temp;
+    }
+
+    public static void playSound(String path) {
+        File blip = new File(path);
+        try {
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(blip);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        }
+        catch(LineUnavailableException | IOException | UnsupportedAudioFileException e) {
+            e.printStackTrace();
+        }
     }
 
     static class MyThread extends Thread {
@@ -166,6 +186,7 @@ public class revisionTyper {
         public MyThread(String sourcedText){
             this.sourcedText = sourcedText;
         }
+
         public void run() {
             ThreadStatus = true;
 
@@ -184,7 +205,14 @@ public class revisionTyper {
 
             char c = 0;
             char[] charArray = sourcedText.toCharArray();
+
+            String[] words = sourcedText.split(" ");
+            int wordsIndex = 0;
+            String word;
+            boolean longWord = false;
+
             int length = charArray.length;
+
             for (int i = 0; i < length; i++) {
 
                 if (Thread.currentThread().isInterrupted())
@@ -193,7 +221,25 @@ public class revisionTyper {
                 try {
                     c = charArray[i];
                     int code = KeyEvent.getExtendedKeyCodeForChar(c);
-                        delayBetween(typingspeed * 2, typingspeed / 2);
+                    delayBetween(typingspeed * 2, typingspeed / 2);
+
+                    if(c == ' ') {
+                        if (longWord)
+                            longWord = false;
+
+                        wordsIndex++;
+                        word = words[wordsIndex];
+                        System.out.println(word);
+
+                        if(word.length() >= 8)
+                            longWord = true;
+
+                    }
+
+                    if(longWord && revisionGUI.realisticDelays) {
+                        delayBetween(typingspeed, typingspeed / 4);
+                            sleep(50);
+                    }
 
                     if (Character.isUpperCase(c))
                         r.keyPress(KeyEvent.VK_SHIFT);
@@ -215,26 +261,33 @@ public class revisionTyper {
                         r.keyRelease(KeyEvent.VK_SHIFT);
 
                 } catch (IllegalArgumentException e) {
-                    assert r != null;
 
-                    if(revisionGUI.realisticDelays)
-                        delayBetween(200,100);
-
+                    if(revisionGUI.realisticDelays) {
+                        try {
+                            delayBetween(200,100);
+                        } catch (InterruptedException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
                     extraCharacters(r, c);
+
                 } catch (InterruptedException e) {
                     break;
                 }
 
                 if (((int) (Math.random() * 50) == 0 && i > 10) && revisionGUI.typoToggle) {
                     try {
-                        System.out.println(i);
-                        i = randomBackSpace(r, i);
+                        int[] temp = randomBackSpace(r, i, charArray, wordsIndex);
+                        i = temp[0];
+                        wordsIndex = temp[1];
+
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 }
 
             }
+            playSound("resource/button3.wav");
             ThreadStatus = false;
 
         }
@@ -242,11 +295,14 @@ public class revisionTyper {
 
     public static void type(String sourcedText) {
         thread = new MyThread(sourcedText);
+        playSound("resource/blip1.wav");
         thread.start();
     }
 
     public static void stopType() {
-        if (thread != null)
+        if (thread != null) {
+            playSound("resource/button3.wav");
             thread.interrupt();
+        }
     }
 }
