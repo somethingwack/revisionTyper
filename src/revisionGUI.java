@@ -16,6 +16,7 @@ public class revisionGUI extends JPanel
     public static boolean typoToggle;
     private static ImageIcon revision;
     private static JLabel image;
+    public static double typoChance = 0.5;
 
     public revisionGUI() {
         DrawUI();
@@ -32,6 +33,11 @@ public class revisionGUI extends JPanel
         label.setForeground(Color.WHITE);
         add(label);
 
+        JLabel typoLabel = new JLabel("25%");
+        typoLabel.setBackground(BG2);
+        typoLabel.setFont(font);
+        typoLabel.setForeground(Color.WHITE);
+
 //        revision = new ImageIcon("revision.png");
 //        image = new JLabel();
 //        image.setBounds(0,0,30,30);
@@ -40,9 +46,24 @@ public class revisionGUI extends JPanel
         JSlider slider = new JSlider(JSlider.HORIZONTAL, 5, 500, 250);
         slider.setMajorTickSpacing(20);
 
+        JSlider typoSlider = new JSlider(JSlider.HORIZONTAL, 1, 25, 10);
+        typoSlider.setMajorTickSpacing(20);
+        typoSlider.setSize(100,100);
+
+        typoSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                typoChance = (double) typoSlider.getValue() / 100;
+                typoLabel.setText(typoSlider.getValue() + "%");
+            }
+        });
+
         Color BG1 = new Color(45, 45, 45);
         slider.setForeground(BG1);
         slider.setBackground(BG2);
+
+        typoSlider.setForeground(BG1);
+        typoSlider.setBackground(BG2);
 
         JLabel sliderLabel = new JLabel("Typing speed approx: 45 WPM");
         sliderLabel.setForeground(Color.WHITE);
@@ -131,6 +152,9 @@ public class revisionGUI extends JPanel
 
         add(slider);
         add(sliderLabel);
+
+        add(typoSlider);
+        add(typoLabel);
 
         setBackground(new Color(20, 0, 0));
 

@@ -127,8 +127,8 @@ public class revisionTyper {
                     r.keyRelease(KeyEvent.VK_CLOSE_BRACKET);
                     break;
                 default:
-                    r.keyPress(KeyEvent.VK_SLASH);
-                    r.keyRelease(KeyEvent.VK_SLASH);// question mark
+                    r.keyPress(KeyEvent.VK_SPACE);
+                    r.keyRelease(KeyEvent.VK_SPACE);
                     //r.keyRelease(KeyEvent.VK_SHIFT);
                     System.out.println("Unexpected value: " + c);
                     //throw new IllegalStateException("Unexpected value: " + c);
@@ -275,8 +275,9 @@ public class revisionTyper {
                     break;
                 }
 
-                if (((int) (Math.random() * 50) == 0 && i > 10) && revisionGUI.typoToggle) {
+                if ((Math.random() < revisionGUI.typoChance && i > 10) && revisionGUI.typoToggle) {
                     try {
+                        System.out.println("yuh" + revisionGUI.typoChance);
                         int[] temp = randomBackSpace(r, i, charArray, wordsIndex);
                         i = temp[0];
                         wordsIndex = temp[1];
