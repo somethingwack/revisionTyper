@@ -4,19 +4,21 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 
-
 public class revisionGUI extends JPanel
 {
+    // GUI
     private static JTextArea textArea = new JTextArea();
-    //private static final JLabel label = new JLabel();
-    //private static JLabel sliderLabel;
+    private final Font font = new Font("font1", Font.BOLD, 10);
 
-    private static int sliderVal = 200;
-    public static boolean realisticDelays = true;
-    public static boolean typoToggle;
-    private static ImageIcon revision;
-    private static JLabel image;
+    // Toggles and Slider values
     public static double typoChance = 0.5;
+    public static boolean typoToggle;
+    public static boolean realisticDelays = true;
+    private static int WPMsliderVal = 200;
+
+    // Colors
+    private final Color BG1 = new Color(45, 45, 45);
+    private final Color BG2 = new Color(20, 20, 20);
 
     public revisionGUI() {
         DrawUI();
@@ -25,139 +27,119 @@ public class revisionGUI extends JPanel
     private void DrawUI() {
         setLayout(new FlowLayout());
 
-        JLabel label = new JLabel("Enter text below, then press run button (4 second delay).    ");
-        Font font = new Font("font1", Font.BOLD, 10);
-        Color BG2 = new Color(20, 20, 20);
+        // Buttons
+        JButton clear = createButton("Clear", new ListenerCLR(), 255,255,255);
+        JButton run = createButton("Run", new ListenerRUN(), 0,200,0);
+        JButton stop = createButton("Stop", new ListenerSTOP(), 200,0,0);
+        
+        // Labels
+        JLabel infoLabel = createLabel("Enter text below, then press run button (4 second delay).    ");
+        JLabel typoSliderLabel = createLabel("25%");
+        JLabel WPMsliderLabel = createLabel("Typing speed approx: 45 WPM");
+        
+        // Sliders
+        JSlider WPMslider = new JSlider(JSlider.HORIZONTAL, 5, 500, 250);
+            WPMslider.setMajorTickSpacing(20);
+            WPMslider.setForeground(BG1);
+            WPMslider.setBackground(BG2);
+            final double[] WPM = {0.0};
+            WPMslider.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    WPMsliderVal = WPMslider.getValue();
+                    WPM[0] = 167.06899 - 24.36022 * Math.log(WPMslider.getValue());
+                    WPMsliderLabel.setText("Approx typing speed: " + (int)Math.round(WPM[0]) + " WPM");
+                }
+            });
+
+        JSlider typoSlider = new JSlider(JSlider.HORIZONTAL, 1, 25, 10);
+            typoSlider.setMajorTickSpacing(20);
+            typoSlider.setForeground(BG1);
+            typoSlider.setBackground(BG2);
+            typoSlider.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    typoChance = (double) typoSlider.getValue() / 100;
+                    typoSliderLabel.setText(typoSlider.getValue() + "%");
+                }
+            });
+
+        // Checkboxes
+        JCheckBox typoCheckBox = createBox("Automatic Typos?", null);
+            typoCheckBox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    typoToggle = typoCheckBox.isSelected();
+                }
+            });
+
+        JCheckBox delaysCheckBox = createBox("Realistic Delays?", null);
+            delaysCheckBox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    realisticDelays = delaysCheckBox.isSelected();
+                }
+            });
+
+        // Primary Text Area and Scroll Pane
+        textArea = new JTextArea(13, 90);
+            textArea.setWrapStyleWord(false);
+            textArea.setLineWrap(true);
+            textArea.setOpaque(true);
+            textArea.setEditable(true);
+            textArea.setFocusable(true);
+            textArea.setBackground(BG1);
+            textArea.setForeground(Color.WHITE);
+            textArea.setFont(new Font("Monospaced", Font.PLAIN, 10));
+            textArea.setBorder(UIManager.getBorder("Label.border"));
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            scrollPane.setForeground(BG2);
+            scrollPane.setForeground(BG1);
+
+        // JFrame
+        setBackground(new Color(20, 0, 0));
+
+        add(infoLabel);
+        add(clear);
+        add(stop);
+        add(run);
+        add(scrollPane);
+        add(WPMslider);
+        add(WPMsliderLabel);
+        add(typoSlider);
+        add(typoSliderLabel);
+
+    }
+    // Methods below for creating common GUI elements
+
+    private JButton createButton(String text, ActionListener listener, int r, int g, int b) {
+        JButton button = new JButton(text);
+        button.addActionListener(listener);
+        button.setForeground(new Color(r,g,b));
+        button.setBackground(BG1);
+        return button;
+    }
+
+    private JLabel createLabel(String text)
+    {
+        JLabel label = new JLabel(text);
         label.setBackground(BG2);
         label.setFont(font);
         label.setForeground(Color.WHITE);
-        add(label);
+        
+        return label;
+    }
 
-        JLabel typoLabel = new JLabel("25%");
-        typoLabel.setBackground(BG2);
-        typoLabel.setFont(font);
-        typoLabel.setForeground(Color.WHITE);
+    private JCheckBox createBox(String text, ActionListener listener)
+    {
+        JCheckBox box = new JCheckBox(text);
+        box.addActionListener(listener);
+        box.setForeground(Color.WHITE);
+        box.setBackground(BG1);
 
-//        revision = new ImageIcon("revision.png");
-//        image = new JLabel();
-//        image.setBounds(0,0,30,30);
-//        image.setIcon(revision);
-
-        JSlider slider = new JSlider(JSlider.HORIZONTAL, 5, 500, 250);
-        slider.setMajorTickSpacing(20);
-
-        JSlider typoSlider = new JSlider(JSlider.HORIZONTAL, 1, 25, 10);
-        typoSlider.setMajorTickSpacing(20);
-        typoSlider.setSize(100,100);
-
-        typoSlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                typoChance = (double) typoSlider.getValue() / 100;
-                typoLabel.setText(typoSlider.getValue() + "%");
-            }
-        });
-
-        Color BG1 = new Color(45, 45, 45);
-        slider.setForeground(BG1);
-        slider.setBackground(BG2);
-
-        typoSlider.setForeground(BG1);
-        typoSlider.setBackground(BG2);
-
-        JLabel sliderLabel = new JLabel("Typing speed approx: 45 WPM");
-        sliderLabel.setForeground(Color.WHITE);
-
-        JButton clear = new JButton("Clear");
-        clear.addActionListener(new ListenerCLR());
-        clear.setBackground(BG1);
-        clear.setForeground(Color.WHITE);
-
-        /*JButton close = new JButton("Close");
-        close.addActionListener(new ListenerCLS());
-        close.setBackground(BG1);
-        close.setForeground(Color.WHITE);
-         */
-
-        JButton submit = new JButton("Run");
-        submit.addActionListener(new ListenerSUB());
-        submit.setBackground(BG1);
-        submit.setForeground(new Color(0,200,0));
-
-        JButton stop = new JButton("Stop");
-        stop.addActionListener(new ListenerSTOP());
-        stop.setBackground(BG1);
-        stop.setForeground(new Color(200,0,0));
-
-        JCheckBox typo = new JCheckBox("Automatic Typos");
-        typo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(typo.isSelected())
-                    typoToggle = true;
-                else
-                    typoToggle = false;
-            }
-        });
-        typo.setBackground(BG1);
-        typo.setForeground(Color.WHITE);
-
-        JCheckBox delays = new JCheckBox("Realistic Delays", true);
-        delays.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(delays.isSelected())
-                    realisticDelays = true;
-                else
-                    realisticDelays = false;
-            }
-        });
-        delays.setBackground(BG1);
-        delays.setForeground(Color.WHITE);
-
-        add(clear);
-        add(submit);
-        add(stop);
-        // + "MS: " + slider.getValue()
-        final double[] WPM = {0.0};
-        slider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                sliderVal = slider.getValue();
-                WPM[0] = 167.06899 - 24.36022 * Math.log(slider.getValue());
-                sliderLabel.setText("Approx typing speed: " + (int)Math.round(WPM[0]) + " WPM");
-            }
-        });
-
-        textArea = new JTextArea(13, 90);
-        textArea.setWrapStyleWord(false);
-        textArea.setLineWrap(true);
-        textArea.setOpaque(true);
-        textArea.setEditable(true);
-        textArea.setFocusable(true);
-        textArea.setBackground(BG1);
-        textArea.setForeground(Color.WHITE);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 10));
-        textArea.setBorder(UIManager.getBorder("Label.border"));
-        add(textArea);
-
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setForeground(BG2);
-        scrollPane.setForeground(BG1);
-        add(scrollPane);
-
-        add(typo);
-        add(delays);
-
-        add(slider);
-        add(sliderLabel);
-
-        add(typoSlider);
-        add(typoLabel);
-
-        setBackground(new Color(20, 0, 0));
-
+        return box;
     }
 
     private static class ListenerCLR implements ActionListener
@@ -167,6 +149,8 @@ public class revisionGUI extends JPanel
             textArea.setText("");
         }
     }
+
+    // JButton Action Listeners
 
     private static class ListenerCLS implements ActionListener
     {
@@ -181,7 +165,7 @@ public class revisionGUI extends JPanel
         }
     }
 
-    private static class ListenerSUB implements ActionListener
+    private static class ListenerRUN implements ActionListener
     {
         public void actionPerformed(ActionEvent e)
         {
@@ -203,7 +187,7 @@ public class revisionGUI extends JPanel
     }
     
     public static int getSlider() {
-        return sliderVal;
+        return WPMsliderVal;
     }
 }
 

@@ -201,7 +201,7 @@ public class revisionTyper {
             } catch (java.awt.AWTException ignored) {
             }
 
-            int typingspeed = revisionGUI.getSlider();  // in form of ms delay between char, WPM is handled by slider
+            int typingspeed = revisionGUI.getSlider(); 
 
             char c = 0;
             char[] charArray = sourcedText.toCharArray();
