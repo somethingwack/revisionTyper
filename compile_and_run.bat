@@ -8,6 +8,7 @@ javac -d "%BASEDIR%out" "%BASEDIR%revisionGUI.java"
 
 cls
 cd /d "%BASEDIR%out"
+
 java revisionMain
 
 endlocal

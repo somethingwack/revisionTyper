@@ -16,7 +16,7 @@ public class revisionTyper {
     }
 
     // Delay utility
-    public static void delayBetween(int max, int min) throws InterruptedException{
+    public static void delayBetween(int max, int min) throws InterruptedException {
             Thread.sleep((int) (Math.random() * (max - min)) + min);
     }
 
@@ -201,7 +201,7 @@ public class revisionTyper {
             } catch (java.awt.AWTException ignored) {
             }
 
-            int typingspeed = revisionGUI.getSlider(); 
+            int typingspeed = revisionGUI.getSlider();
 
             char c = 0;
             char[] charArray = sourcedText.toCharArray();
@@ -229,7 +229,7 @@ public class revisionTyper {
 
                         wordsIndex++;
                         word = words[wordsIndex];
-                        System.out.println(word);
+                        // System.out.println(word);
 
                         if(word.length() >= 8)
                             longWord = true;
@@ -277,7 +277,7 @@ public class revisionTyper {
 
                 if ((Math.random() < revisionGUI.typoChance && i > 10) && revisionGUI.typoToggle) {
                     try {
-                        System.out.println("yuh" + revisionGUI.typoChance);
+                        // System.out.println("yuh" + revisionGUI.typoChance);
                         int[] temp = randomBackSpace(r, i, charArray, wordsIndex);
                         i = temp[0];
                         wordsIndex = temp[1];

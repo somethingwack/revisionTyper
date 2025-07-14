@@ -11,10 +11,10 @@ public class revisionGUI extends JPanel
     private final Font font = new Font("font1", Font.BOLD, 10);
 
     // Toggles and Slider values
-    public static double typoChance = 0.5;
+    public static double typoChance = 0.05;
     public static boolean typoToggle;
     public static boolean realisticDelays = true;
-    private static int WPMsliderVal = 200;
+    private static int WPMsliderVal = 140;
 
     // Colors
     private final Color BG1 = new Color(45, 45, 45);
@@ -34,25 +34,43 @@ public class revisionGUI extends JPanel
         
         // Labels
         JLabel infoLabel = createLabel("Enter text below, then press run button (4 second delay).    ");
-        JLabel typoSliderLabel = createLabel("25%");
-        JLabel WPMsliderLabel = createLabel("Typing speed approx: 45 WPM");
+        JLabel typoSliderLabel = createLabel("5%t ypo / letter");
+        JLabel WPMsliderLabel = createLabel("140 ms, medium");
         
         // Sliders
-        JSlider WPMslider = new JSlider(JSlider.HORIZONTAL, 5, 500, 250);
-            WPMslider.setMajorTickSpacing(20);
-            WPMslider.setForeground(BG1);
-            WPMslider.setBackground(BG2);
-            final double[] WPM = {0.0};
-            WPMslider.addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    WPMsliderVal = WPMslider.getValue();
-                    WPM[0] = 167.06899 - 24.36022 * Math.log(WPMslider.getValue());
-                    WPMsliderLabel.setText("Approx typing speed: " + (int)Math.round(WPM[0]) + " WPM");
-                }
-            });
+//        JSlider WPMslider = new JSlider(JSlider.HORIZONTAL, 5, 500, 250);
+//            WPMslider.setMajorTickSpacing(20);
+//            WPMslider.setForeground(BG1);
+//            WPMslider.setBackground(BG2);
+//            final double[] WPM = {0.0};
+//            WPMslider.addChangeListener(new ChangeListener() {
+//                @Override
+//                public void stateChanged(ChangeEvent e) {
+//                    WPMsliderVal = WPMslider.getValue();
+//                    WPM[0] = 167.06899 - 24.36022 * Math.log(WPMslider.getValue());
+//                    WPMsliderLabel.setText("Approx typing speed: " + (int)Math.round(WPM[0]) + " WPM");
+//                }
+//            });
 
-        JSlider typoSlider = new JSlider(JSlider.HORIZONTAL, 1, 25, 10);
+        JSlider WPMslider = new JSlider(JSlider.HORIZONTAL, 30, 250, 140);
+        WPMslider.setMajorTickSpacing(20);
+        WPMslider.setForeground(BG1);
+        WPMslider.setBackground(BG2);
+        WPMslider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                WPMsliderVal = WPMslider.getValue();
+
+                if(WPMsliderVal >= 200)
+                    WPMsliderLabel.setText(WPMsliderVal + "   ms, slow");
+                else if(WPMsliderVal >= 100)
+                    WPMsliderLabel.setText(WPMsliderVal + " ms, medium");
+                else if(WPMsliderVal >= 30)
+                    WPMsliderLabel.setText(WPMsliderVal + "   ms, fast");
+            }
+        });
+
+        JSlider typoSlider = new JSlider(JSlider.HORIZONTAL, 1, 10, 5);
             typoSlider.setMajorTickSpacing(20);
             typoSlider.setForeground(BG1);
             typoSlider.setBackground(BG2);
@@ -60,7 +78,7 @@ public class revisionGUI extends JPanel
                 @Override
                 public void stateChanged(ChangeEvent e) {
                     typoChance = (double) typoSlider.getValue() / 100;
-                    typoSliderLabel.setText(typoSlider.getValue() + "%");
+                    typoSliderLabel.setText(typoSlider.getValue() + "% typo / letter");
                 }
             });
 
@@ -110,6 +128,8 @@ public class revisionGUI extends JPanel
         add(WPMsliderLabel);
         add(typoSlider);
         add(typoSliderLabel);
+        add(typoCheckBox);
+        add(delaysCheckBox);
 
     }
     // Methods below for creating common GUI elements
@@ -149,7 +169,6 @@ public class revisionGUI extends JPanel
             textArea.setText("");
         }
     }
-
     // JButton Action Listeners
 
     private static class ListenerCLS implements ActionListener
