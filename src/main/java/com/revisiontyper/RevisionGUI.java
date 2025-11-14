@@ -167,15 +167,16 @@ public final class RevisionGUI extends JPanel {
     }
 
     private JSlider buildTypoSlider() {
-        JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 15,
-                (int) Math.round(TypingSettings.getTypoChance() * 100));
+        JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 30,
+                TypingSettings.getTypoRatePerHundredWords());
         slider.setBackground(BG_SECONDARY);
+        slider.setMajorTickSpacing(5);
+        slider.setMinorTickSpacing(1);
+        slider.setPaintTicks(true);
         slider.addChangeListener(e -> {
-            TypingSettings.setTypoChance(slider.getValue() / 100.0);
-            TypingSettings.setTyposEnabled(slider.getValue() > 0);
+            TypingSettings.setTypoRatePerHundredWords(slider.getValue());
             typoLabel.setText(describeTypoLabel());
         });
-        TypingSettings.setTyposEnabled(slider.getValue() > 0);
         return slider;
     }
 
@@ -263,7 +264,9 @@ public final class RevisionGUI extends JPanel {
     }
 
     private static String describeTypoLabel() {
-        return (int) Math.round(TypingSettings.getTypoChance() * 100) + "% typo / letter";
+        int perHundredWords = TypingSettings.getTypoRatePerHundredWords();
+        double percent = TypingSettings.getTypoChance() * 100.0;
+        return perHundredWords + " typos / 100 words (" + String.format("%.2f", percent) + "% per char)";
     }
 
     private void installKeyboardShortcuts() {

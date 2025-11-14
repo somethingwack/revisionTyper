@@ -10,6 +10,7 @@ public final class TypingSettings {
     private static final double AVG_CHARS_PER_WORD = 5.0;
     private static final double MIN_TYPO_CHANCE = 0.0;
     private static final double MAX_TYPO_CHANCE = 0.25;
+    private static final int MAX_TYPOS_PER_HUNDRED_WORDS = 30;
     private static final int DEFAULT_WPM = 120;
     private static final int MAX_WPM_CAP = 120;
     private static final int MIN_WPM = wpmFromDelay(MAX_DELAY_MS);
@@ -38,6 +39,17 @@ public final class TypingSettings {
     public static void setTypoChance(double chance) {
         double sanitized = Math.max(MIN_TYPO_CHANCE, Math.min(MAX_TYPO_CHANCE, chance));
         typoChance = sanitized;
+        typosEnabled = sanitized > 0.0001;
+    }
+
+    public static int getTypoRatePerHundredWords() {
+        return (int) Math.round(typoChance * AVG_CHARS_PER_WORD * 100.0);
+    }
+
+    public static void setTypoRatePerHundredWords(int typosPerHundredWords) {
+        int sanitized = Math.max(0, Math.min(MAX_TYPOS_PER_HUNDRED_WORDS, typosPerHundredWords));
+        double chance = sanitized / (AVG_CHARS_PER_WORD * 100.0);
+        setTypoChance(chance);
     }
 
     public static boolean isTyposEnabled() {
