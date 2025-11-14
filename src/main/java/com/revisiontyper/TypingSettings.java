@@ -12,16 +12,12 @@ public final class TypingSettings {
     private static final double MAX_TYPO_CHANCE = 0.25;
     private static final int DEFAULT_WPM = 120;
     private static final int MAX_WPM_CAP = 120;
-    private static final int MIN_START_DELAY_MS = 0;
-    private static final int MAX_START_DELAY_MS = 8000;
-    private static final int DEFAULT_START_DELAY_MS = 4000;
     private static final int MIN_WPM = wpmFromDelay(MAX_DELAY_MS);
     private static final int MAX_WPM = Math.min(MAX_WPM_CAP, wpmFromDelay(MIN_DELAY_MS));
     private static volatile int typingDelayMs = delayFromWpm(DEFAULT_WPM);
     private static volatile double typoChance = 0.05;
     private static volatile boolean typosEnabled;
     private static volatile boolean realisticDelays = true;
-    private static volatile int startDelayMs = DEFAULT_START_DELAY_MS;
 
     private TypingSettings() {
     }
@@ -58,23 +54,6 @@ public final class TypingSettings {
 
     public static void setRealisticDelays(boolean enabled) {
         realisticDelays = enabled;
-    }
-
-    public static int getStartDelayMs() {
-        return startDelayMs;
-    }
-
-    public static void setStartDelayMs(int delayMs) {
-        int sanitized = Math.max(MIN_START_DELAY_MS, Math.min(MAX_START_DELAY_MS, delayMs));
-        startDelayMs = sanitized;
-    }
-
-    public static int getMinimumStartDelayMs() {
-        return MIN_START_DELAY_MS;
-    }
-
-    public static int getMaximumStartDelayMs() {
-        return MAX_START_DELAY_MS;
     }
 
     public static int getMinimumWpm() {

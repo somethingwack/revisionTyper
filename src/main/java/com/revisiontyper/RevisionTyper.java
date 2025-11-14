@@ -17,6 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class RevisionTyper {
 
+    public static final int START_DELAY_MS = 4000;
     private static final Map<Character, SpecialKey> SPECIAL_KEYS = buildSpecialKeys();
     private static final String SOUND_RESOURCE_PREFIX = "/audio/";
 
@@ -202,7 +203,7 @@ public final class RevisionTyper {
         @Override
         public void run() {
             try {
-                Thread.sleep(TypingSettings.getStartDelayMs());
+                Thread.sleep(START_DELAY_MS);
                 Robot robot = new Robot();
                 typeSource(robot);
             } catch (InterruptedException ignored) {
