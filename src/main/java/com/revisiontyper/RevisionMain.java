@@ -3,6 +3,8 @@ package com.revisiontyper;
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+import java.awt.Taskbar;
+import java.awt.Image;
 
 public final class RevisionMain {
 
@@ -18,15 +20,30 @@ public final class RevisionMain {
             frame.setSize(760, 420);
             frame.setMinimumSize(new Dimension(640, 360));
             frame.setLocationRelativeTo(null);
-            setWindowIcon(frame);
+            Image iconImage = loadAppIcon();
+            if (iconImage != null) {
+                frame.setIconImage(iconImage);
+                setTaskbarIcon(iconImage);
+            }
             frame.setVisible(true);
         });
     }
 
-    private static void setWindowIcon(JFrame frame) {
-        URL iconUrl = RevisionMain.class.getResource("/resource/RevWriter.png");
+    private static Image loadAppIcon() {
+        URL iconUrl = RevisionMain.class.getResource("/icons/RevWriter.png");
         if (iconUrl != null) {
-            frame.setIconImage(new ImageIcon(iconUrl).getImage());
+            return new ImageIcon(iconUrl).getImage();
+        }
+        return null;
+    }
+
+    private static void setTaskbarIcon(Image icon) {
+        if (!Taskbar.isTaskbarSupported()) {
+            return;
+        }
+        Taskbar taskbar = Taskbar.getTaskbar();
+        if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+            taskbar.setIconImage(icon);
         }
     }
 }

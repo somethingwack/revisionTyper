@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class RevisionTyper {
 
     private static final Map<Character, SpecialKey> SPECIAL_KEYS = buildSpecialKeys();
-    private static final String RESOURCE_PREFIX = "/resource/";
+    private static final String SOUND_RESOURCE_PREFIX = "/audio/";
 
     private static TypistThread activeThread;
 
@@ -121,7 +121,7 @@ public final class RevisionTyper {
     }
 
     private static void playSound(String resourceName) {
-        URL soundUrl = RevisionTyper.class.getResource(RESOURCE_PREFIX + resourceName);
+        URL soundUrl = RevisionTyper.class.getResource(SOUND_RESOURCE_PREFIX + resourceName);
         if (soundUrl == null) {
             return;
         }
