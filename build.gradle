@@ -1,0 +1,104 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id 'application'
+}
+
+group = 'com.revisiontyper'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+}
+
+application {
+    applicationName = 'RevisionTyper'
+    mainClass = 'com.revisiontyper.RevisionMain'
+}
+
+def jpackageExecutable() {
+    def javaHome = System.getenv('JAVA_HOME') ?: System.getProperty('java.home')
+    if (!javaHome) {
+        throw new GradleException("JAVA_HOME is not set. Please point it to a JDK 17+ that includes jpackage.")
+    }
+    def currentOs = OperatingSystem.current()
+    def execName = currentOs.isWindows() ? 'jpackage.exe' : 'jpackage'
+    File candidate = new File(javaHome, "bin/${execName}")
+    if (!candidate.canExecute()) {
+        throw new GradleException("Unable to find executable ${candidate}. Set JAVA_HOME to a JDK with jpackage.")
+    }
+    return candidate
+}
+
+tasks.register('packageMac', Exec) {
+    description = 'Creates a macOS DMG using jpackage (run on macOS).'
+    group = 'distribution'
+    onlyIf { OperatingSystem.current().isMacOsX() }
+    dependsOn 'installDist'
+    doFirst {
+        layout.buildDirectory.dir('jpackage').get().asFile.mkdirs()
+    }
+    def inputDir = layout.buildDirectory.dir("install/${application.applicationName}/lib").get().asFile
+    def destDir = layout.buildDirectory.dir('jpackage').get().asFile
+    def jarName = tasks.named('jar').get().archiveFile.get().asFile.name
+    commandLine(
+            jpackageExecutable().absolutePath,
+            '--type', 'dmg',
+            '--name', 'RevisionTyper',
+            '--app-version', project.version,
+            '--input', inputDir.absolutePath,
+            '--main-jar', jarName,
+            '--main-class', application.mainClass.get(),
+            '--dest', destDir.absolutePath,
+            '--icon', file('src/main/resources/icons/RevWriter.icns').absolutePath
+    )
+}
+
+tasks.register('packageWindows', Exec) {
+    description = 'Creates a Windows EXE using jpackage (run on Windows).'
+    group = 'distribution'
+    onlyIf { OperatingSystem.current().isWindows() }
+    dependsOn 'installDist'
+    doFirst {
+        layout.buildDirectory.dir('jpackage').get().asFile.mkdirs()
+    }
+    def inputDir = layout.buildDirectory.dir("install/${application.applicationName}/lib").get().asFile
+    def destDir = layout.buildDirectory.dir('jpackage').get().asFile
+    def jarName = tasks.named('jar').get().archiveFile.get().asFile.name
+    commandLine(
+            jpackageExecutable().absolutePath,
+            '--type', 'exe',
+            '--name', 'RevisionTyper',
+            '--app-version', project.version,
+            '--input', inputDir.absolutePath,
+            '--main-jar', jarName,
+            '--main-class', application.mainClass.get(),
+            '--dest', destDir.absolutePath,
+            '--icon', file('src/main/resources/icons/RevWriter.ico').absolutePath
+    )
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release.set(17)
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+tasks.named('jar', Jar) {
+    manifest {
+        attributes('Main-Class': application.mainClass.get())
+    }
+}
