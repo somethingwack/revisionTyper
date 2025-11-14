@@ -240,8 +240,10 @@ public final class RevisionTyper {
 
         private final String source;
         private final List<DeferredCorrection> deferredCorrections = new ArrayList<>();
+        private final StringBuilder typedBuffer = new StringBuilder();
         private volatile boolean stopRequested;
         private int documentLength;
+        private int caretIndex;
 
         private TypistThread(String source) {
             super("RevisionTyperThread");
@@ -273,14 +275,41 @@ public final class RevisionTyper {
         private void typeSource(Robot robot) throws InterruptedException {
             int wordCharCount = 0;
             documentLength = 0;
+            caretIndex = 0;
+            typedBuffer.setLength(0);
             char[] chars = source.toCharArray();
             int index = 0;
             HumanDelayModel delayModel = HumanDelayModel.createDefault();
             SpeedRegulator speedRegulator = new SpeedRegulator();
 
+            double perWordTypoRate = TypingSettings.getTypoRatePerHundredWords() / 100.0;
+            boolean shouldTypoCurrentWord = false;
+            int typoTriggerIndex = -1;
+            int charsInCurrentWord = 0;
+            char lastTypedChar = '\0';
+            char lastTypoPreviousChar = '\0';
+
             while (index < chars.length && !stopRequested) {
                 char current = chars[index];
                 char previous = index == 0 ? '\0' : chars[index - 1];
+                boolean whitespace = Character.isWhitespace(current);
+
+                if (whitespace) {
+                    if (shouldTypoCurrentWord && charsInCurrentWord > 0) {
+                        maybeInjectTypo(robot, lastTypoPreviousChar, lastTypedChar);
+                        shouldTypoCurrentWord = false;
+                    }
+                    charsInCurrentWord = 0;
+                    typoTriggerIndex = -1;
+                } else {
+                    if (charsInCurrentWord == 0) {
+                        shouldTypoCurrentWord = TypingSettings.isTyposEnabled()
+                                && ThreadLocalRandom.current().nextDouble() < perWordTypoRate;
+                        if (shouldTypoCurrentWord) {
+                            typoTriggerIndex = 1 + ThreadLocalRandom.current().nextInt(3);
+                        }
+                    }
+                }
 
                 long delay = delayModel.computeInterKeyDelay(previous, current, wordCharCount);
                 long adjustedDelay = speedRegulator.adjustDelay(delay);
@@ -289,24 +318,33 @@ public final class RevisionTyper {
                 }
 
                 typeCharacterAndTrack(robot, current);
+                lastTypedChar = current;
+                lastTypoPreviousChar = previous;
                 speedRegulator.markCharTyped();
+                maybeTakeThinkingPause(whitespace, current);
 
-                wordCharCount = Character.isWhitespace(current) ? 0 : wordCharCount + 1;
+                wordCharCount = whitespace ? 0 : wordCharCount + 1;
 
-                if (TypingSettings.isTyposEnabled() && index > 10) {
-                    maybeInjectTypo(robot, previous, current);
+                if (!whitespace) {
+                    charsInCurrentWord++;
+                    if (shouldTypoCurrentWord && charsInCurrentWord >= typoTriggerIndex) {
+                        maybeInjectTypo(robot, previous, current);
+                        shouldTypoCurrentWord = false;
+                    }
+                } else if (shouldTypoCurrentWord && charsInCurrentWord > 0) {
+                    maybeInjectTypo(robot, lastTypoPreviousChar, lastTypedChar);
+                    shouldTypoCurrentWord = false;
                 }
 
                 index++;
+            }
+            if (shouldTypoCurrentWord && charsInCurrentWord > 0 && lastTypedChar != '\0') {
+                maybeInjectTypo(robot, lastTypoPreviousChar, lastTypedChar);
             }
             applyDeferredCorrections(robot);
         }
 
         private void maybeInjectTypo(Robot robot, char previousChar, char currentChar) throws InterruptedException {
-            if (ThreadLocalRandom.current().nextDouble() >= TypingSettings.getTypoChance()) {
-                return;
-            }
-
             TypoPattern pattern = pickTypoPattern(previousChar);
             switch (pattern) {
                 case DOUBLE_PRESS -> simulateDoubleLetter(robot, currentChar);
@@ -406,18 +444,28 @@ public final class RevisionTyper {
 
         private void typeCharacterAndTrack(Robot robot, char character) throws InterruptedException {
             RevisionTyper.typeCharacter(robot, character);
-            documentLength++;
+            typedBuffer.insert(caretIndex, character);
+            caretIndex++;
+            documentLength = typedBuffer.length();
         }
 
         private void backspaceAndTrack(Robot robot) throws InterruptedException {
             tapKey(robot, KeyEvent.VK_BACK_SPACE, false);
-            if (documentLength > 0) {
-                documentLength--;
+            if (caretIndex > 0) {
+                typedBuffer.deleteCharAt(caretIndex - 1);
+                caretIndex--;
+                documentLength = typedBuffer.length();
             }
         }
 
         private void applyDeferredCorrections(Robot robot) throws InterruptedException {
-            if (stopRequested || deferredCorrections.isEmpty()) {
+            if (stopRequested) {
+                return;
+            }
+            if (deferredCorrections.isEmpty()) {
+                if (queueResidualCorrections()) {
+                    applyDeferredCorrections(robot);
+                }
                 return;
             }
             deferredCorrections.sort(Comparator.comparingInt(DeferredCorrection::typedIndex).reversed());
@@ -430,6 +478,7 @@ public final class RevisionTyper {
                     moveCaretLeftBy(robot, moveLeft);
                     currentOffsetFromEnd = targetOffset;
                 }
+                pauseBeforeEdit();
                 switch (correction.pattern) {
                     case DOUBLE_PRESS, SPACE_SLIP -> removeExtras(robot, correction.extraCount);
                     case NEARBY_KEY -> fixNearbyKey(robot, correction.primaryChar);
@@ -440,31 +489,38 @@ public final class RevisionTyper {
             }
             moveCaretToEnd(robot);
             deferredCorrections.clear();
+            if (queueResidualCorrections()) {
+                applyDeferredCorrections(robot);
+            }
         }
 
         private void removeExtras(Robot robot, int count) throws InterruptedException {
             for (int i = 0; i < count; i++) {
                 backspaceAndTrack(robot);
-                delayBetween(110, 45);
+                humanPause(80, 160);
             }
         }
 
         private void fixNearbyKey(Robot robot, char intended) throws InterruptedException {
             backspaceAndTrack(robot);
-            delayBetween(150, 60);
+            humanPause(120, 220);
             typeCharacterAndTrack(robot, intended);
+            humanPause(70, 150);
         }
 
         private void fixTranspose(Robot robot, char first, char second) throws InterruptedException {
             backspaceAndTrack(robot);
             backspaceAndTrack(robot);
-            delayBetween(140, 60);
+            humanPause(140, 230);
             typeCharacterAndTrack(robot, first);
+            humanPause(80, 140);
             typeCharacterAndTrack(robot, second);
+            humanPause(70, 130);
         }
 
         private void insertMissingLetter(Robot robot, char ch) throws InterruptedException {
             typeCharacterAndTrack(robot, ch);
+            humanPause(70, 150);
         }
 
         private void moveCaretToEnd(Robot robot) throws InterruptedException {
@@ -474,22 +530,150 @@ public final class RevisionTyper {
             robot.keyRelease(KeyEvent.VK_END);
             robot.keyRelease(KeyEvent.VK_CONTROL);
             Thread.sleep(20);
+            caretIndex = typedBuffer.length();
         }
 
         private void moveCaretLeftBy(Robot robot, int count) throws InterruptedException {
             if (count <= 0) {
                 return;
             }
-            while (count > 0) {
-                int chunk = Math.min(6, count);
-                for (int i = 0; i < chunk; i++) {
+            while (count > 0 && !stopRequested) {
+                int stride = Math.min(count, 1 + ThreadLocalRandom.current().nextInt(3));
+                for (int i = 0; i < stride && count > 0; i++) {
                     tapKey(robot, KeyEvent.VK_LEFT, false);
+                    caretIndex = Math.max(0, caretIndex - 1);
+                    count--;
+                    Thread.sleep(25 + ThreadLocalRandom.current().nextInt(45));
                 }
-                count -= chunk;
                 if (count > 0) {
-                    Thread.sleep(15);
+                    Thread.sleep(80 + ThreadLocalRandom.current().nextInt(120));
                 }
             }
+        }
+
+        private boolean queueResidualCorrections() {
+            documentLength = typedBuffer.length();
+            String snapshot = typedBuffer.toString();
+            if (snapshot.isEmpty() && source.isEmpty()) {
+                return false;
+            }
+            List<DeferredCorrection> residuals = buildResidualCorrections(snapshot);
+            if (residuals.isEmpty()) {
+                return false;
+            }
+            deferredCorrections.addAll(residuals);
+            return true;
+        }
+
+        private List<DeferredCorrection> buildResidualCorrections(String typedSnapshot) {
+            List<DeferredCorrection> residuals = new ArrayList<>();
+            StringBuilder working = new StringBuilder(typedSnapshot);
+            int offset = 0;
+            int i = 0;
+            int j = 0;
+            while (i < source.length() || j < working.length()) {
+                char sourceChar = i < source.length() ? source.charAt(i) : '\0';
+                char workingChar = j < working.length() ? working.charAt(j) : '\0';
+                if (i < source.length() && j < working.length() && sourceChar == workingChar) {
+                    i++;
+                    j++;
+                    continue;
+                }
+                if (j < working.length() && Character.isWhitespace(workingChar)
+                        && (i >= source.length() || !Character.isWhitespace(sourceChar))) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.spaceSlip(originalIndex + 1, 1));
+                    working.deleteCharAt(j);
+                    offset++;
+                    continue;
+                }
+                if (i < source.length() && Character.isWhitespace(sourceChar)
+                        && (j >= working.length() || !Character.isWhitespace(workingChar))) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.missing(originalIndex, sourceChar));
+                    working.insert(j, sourceChar);
+                    offset--;
+                    i++;
+                    j++;
+                    continue;
+                }
+                if (i + 1 < source.length() && j + 1 < working.length()
+                        && sourceChar == working.charAt(j + 1)
+                        && source.charAt(i + 1) == workingChar) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.transpose(originalIndex + 2,
+                            sourceChar, source.charAt(i + 1)));
+                    working.setCharAt(j, sourceChar);
+                    working.setCharAt(j + 1, source.charAt(i + 1));
+                    i += 2;
+                    j += 2;
+                    continue;
+                }
+                if (j < working.length() && (i >= source.length()
+                        || (j + 1 < working.length() && sourceChar == working.charAt(j + 1)))) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.doublePress(originalIndex + 1, 1));
+                    working.deleteCharAt(j);
+                    offset++;
+                    continue;
+                }
+                if (i < source.length() && (j >= working.length()
+                        || (i + 1 < source.length() && source.charAt(i + 1) == workingChar))) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.missing(originalIndex, sourceChar));
+                    working.insert(j, sourceChar);
+                    offset--;
+                    i++;
+                    j++;
+                    continue;
+                }
+                if (i < source.length() && j < working.length()) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.nearby(originalIndex + 1, sourceChar));
+                    working.setCharAt(j, sourceChar);
+                    i++;
+                    j++;
+                    continue;
+                }
+                if (j < working.length()) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.doublePress(originalIndex + 1, 1));
+                    working.deleteCharAt(j);
+                    offset++;
+                    continue;
+                }
+                if (i < source.length()) {
+                    int originalIndex = j + offset;
+                    residuals.add(DeferredCorrection.missing(originalIndex, sourceChar));
+                    working.append(sourceChar);
+                    offset--;
+                    i++;
+                    j++;
+                }
+            }
+            return residuals;
+        }
+
+        private void pauseBeforeEdit() throws InterruptedException {
+            humanPause(60, 180);
+        }
+
+        private void maybeTakeThinkingPause(boolean whitespace, char currentChar) throws InterruptedException {
+            if (!TypingSettings.isRealisticDelaysEnabled() || stopRequested) {
+                return;
+            }
+            if (currentChar == '.' || currentChar == '?' || currentChar == '!') {
+                humanPause(280, 520);
+            } else if (whitespace && ThreadLocalRandom.current().nextDouble() < 0.05) {
+                humanPause(90, 180);
+            }
+        }
+
+        private void humanPause(int min, int max) throws InterruptedException {
+            if (stopRequested) {
+                return;
+            }
+            Thread.sleep(min + ThreadLocalRandom.current().nextInt(Math.max(1, max - min)));
         }
     }
 

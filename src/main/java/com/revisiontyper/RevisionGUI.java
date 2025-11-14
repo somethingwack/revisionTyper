@@ -282,8 +282,7 @@ public final class RevisionGUI extends JPanel {
 
     private static String describeTypoLabel() {
         int perHundredWords = TypingSettings.getTypoRatePerHundredWords();
-        double percent = TypingSettings.getTypoChance() * 100.0;
-        return perHundredWords + " typos / 100 words (" + String.format("%.2f", percent) + "% per char)";
+        return perHundredWords + " typos / 100 words";
     }
 
     private void installKeyboardShortcuts() {
