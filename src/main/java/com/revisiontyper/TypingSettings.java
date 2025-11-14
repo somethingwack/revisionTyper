@@ -1,0 +1,95 @@
+package com.revisiontyper;
+
+/**
+ * Central place for runtime typing preferences so the UI and background engine stay in sync.
+ */
+public final class TypingSettings {
+
+    private static final int MIN_DELAY_MS = 30;
+    private static final int MAX_DELAY_MS = 400;
+    private static final double AVG_CHARS_PER_WORD = 5.0;
+    private static final double MIN_TYPO_CHANCE = 0.0;
+    private static final double MAX_TYPO_CHANCE = 0.25;
+    private static final int DEFAULT_WPM = 200;
+    private static final int MIN_WPM = wpmFromDelay(MAX_DELAY_MS);
+    private static final int MAX_WPM = wpmFromDelay(MIN_DELAY_MS);
+    private static volatile int typingDelayMs = delayFromWpm(DEFAULT_WPM);
+    private static volatile double typoChance = 0.05;
+    private static volatile boolean typosEnabled;
+    private static volatile boolean realisticDelays = true;
+
+    private TypingSettings() {
+    }
+
+    public static int getTypingDelay() {
+        return typingDelayMs;
+    }
+
+    public static void setTypingDelay(int delayMs) {
+        int sanitized = Math.max(MIN_DELAY_MS, Math.min(MAX_DELAY_MS, delayMs));
+        typingDelayMs = sanitized;
+    }
+
+    public static double getTypoChance() {
+        return typoChance;
+    }
+
+    public static void setTypoChance(double chance) {
+        double sanitized = Math.max(MIN_TYPO_CHANCE, Math.min(MAX_TYPO_CHANCE, chance));
+        typoChance = sanitized;
+    }
+
+    public static boolean isTyposEnabled() {
+        return typosEnabled;
+    }
+
+    public static void setTyposEnabled(boolean enabled) {
+        typosEnabled = enabled;
+    }
+
+    public static boolean isRealisticDelaysEnabled() {
+        return realisticDelays;
+    }
+
+    public static void setRealisticDelays(boolean enabled) {
+        realisticDelays = enabled;
+    }
+
+    public static int getMinimumWpm() {
+        return MIN_WPM;
+    }
+
+    public static int getMaximumWpm() {
+        return MAX_WPM;
+    }
+
+    public static int getTypingWpm() {
+        return wpmFromDelay(typingDelayMs);
+    }
+
+    public static void setTypingWpm(int targetWpm) {
+        int sanitized = Math.max(MIN_WPM, Math.min(MAX_WPM, targetWpm));
+        setTypingDelay(delayFromWpm(sanitized));
+    }
+
+    public static int estimateWpm() {
+        return getTypingWpm();
+    }
+
+    private static int delayFromWpm(int targetWpm) {
+        if (targetWpm <= 0) {
+            return MIN_DELAY_MS;
+        }
+        double charsPerMinute = targetWpm * AVG_CHARS_PER_WORD;
+        double millisPerChar = 60000.0 / charsPerMinute;
+        int delay = (int) Math.round(millisPerChar);
+        return Math.max(MIN_DELAY_MS, Math.min(MAX_DELAY_MS, delay));
+    }
+
+    private static int wpmFromDelay(int delayMs) {
+        double millisPerChar = Math.max(MIN_DELAY_MS, Math.min(MAX_DELAY_MS, delayMs));
+        double charsPerMinute = 60000.0 / millisPerChar;
+        double wordsPerMinute = charsPerMinute / AVG_CHARS_PER_WORD;
+        return (int) Math.round(wordsPerMinute);
+    }
+}
