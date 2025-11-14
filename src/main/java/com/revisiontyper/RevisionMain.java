@@ -22,8 +22,10 @@ public final class RevisionMain {
             frame.setLocationRelativeTo(null);
             Image iconImage = loadAppIcon();
             if (iconImage != null) {
-                frame.setIconImage(iconImage);
-                setTaskbarIcon(iconImage);
+                if (!isMacOs()) {
+                    frame.setIconImage(iconImage);
+                    setTaskbarIcon(iconImage);
+                }
             }
             frame.setVisible(true);
         });
@@ -37,8 +39,17 @@ public final class RevisionMain {
         return null;
     }
 
+    private static boolean isMacOs() {
+        String name = System.getProperty("os.name", "").toLowerCase();
+        return name.contains("mac");
+    }
+
     private static void setTaskbarIcon(Image icon) {
         if (!Taskbar.isTaskbarSupported()) {
+            return;
+        }
+        if (isMacOs()) {
+            // Let macOS use the .icns bundled with the app to preserve rounded dock styling.
             return;
         }
         Taskbar taskbar = Taskbar.getTaskbar();
