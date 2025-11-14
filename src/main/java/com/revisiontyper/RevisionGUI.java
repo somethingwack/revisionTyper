@@ -22,9 +22,11 @@ public final class RevisionGUI extends JPanel {
     private final JButton stopButton;
     private final JLabel statusLabel;
     private final Timer statusTimer;
+    private final JFrame hostFrame;
     private long pendingStartDeadlineMs = -1L;
 
-    public RevisionGUI() {
+    public RevisionGUI(JFrame hostFrame) {
+        this.hostFrame = hostFrame;
         setLayout(new BorderLayout(12, 12));
         setBackground(BG_SECONDARY);
         setBorder(new EmptyBorder(12, 12, 12, 12));
@@ -103,6 +105,7 @@ public final class RevisionGUI extends JPanel {
         JPanel checkBoxes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         checkBoxes.setBackground(BG_SECONDARY);
         checkBoxes.add(buildDelayBox());
+        checkBoxes.add(buildAlwaysOnTopBox());
 
         container.add(buttonRow);
         container.add(Box.createVerticalStrut(10));
@@ -130,6 +133,20 @@ public final class RevisionGUI extends JPanel {
         box.setSelected(TypingSettings.isRealisticDelaysEnabled());
         box.setToolTipText("Add additional pauses for punctuation and long words.");
         box.addActionListener(e -> TypingSettings.setRealisticDelays(box.isSelected()));
+        return box;
+    }
+
+    private JCheckBox buildAlwaysOnTopBox() {
+        JCheckBox box = createCheckBox("Always on top");
+        box.setSelected(TypingSettings.isAlwaysOnTopEnabled());
+        box.setToolTipText("Keep the typer window above other apps.");
+        box.addActionListener(e -> {
+            boolean enabled = box.isSelected();
+            TypingSettings.setAlwaysOnTopEnabled(enabled);
+            if (hostFrame != null) {
+                hostFrame.setAlwaysOnTop(enabled);
+            }
+        });
         return box;
     }
 

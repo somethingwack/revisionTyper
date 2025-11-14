@@ -19,6 +19,7 @@ public final class TypingSettings {
     private static volatile double typoChance = 0.05;
     private static volatile boolean typosEnabled;
     private static volatile boolean realisticDelays = true;
+    private static volatile boolean alwaysOnTop;
 
     private TypingSettings() {
     }
@@ -66,6 +67,14 @@ public final class TypingSettings {
 
     public static void setRealisticDelays(boolean enabled) {
         realisticDelays = enabled;
+    }
+
+    public static boolean isAlwaysOnTopEnabled() {
+        return alwaysOnTop;
+    }
+
+    public static void setAlwaysOnTopEnabled(boolean enabled) {
+        alwaysOnTop = enabled;
     }
 
     public static int getMinimumWpm() {

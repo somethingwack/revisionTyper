@@ -15,7 +15,8 @@ public final class RevisionMain {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Revision Typer");
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.setContentPane(new RevisionGUI());
+            RevisionGUI gui = new RevisionGUI(frame);
+            frame.setContentPane(gui);
             frame.pack();
             frame.setSize(760, 420);
             frame.setMinimumSize(new Dimension(640, 360));
@@ -27,6 +28,7 @@ public final class RevisionMain {
                     setTaskbarIcon(iconImage);
                 }
             }
+            frame.setAlwaysOnTop(TypingSettings.isAlwaysOnTopEnabled());
             frame.setVisible(true);
         });
     }
