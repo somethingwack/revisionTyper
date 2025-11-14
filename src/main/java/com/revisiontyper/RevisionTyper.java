@@ -17,9 +17,6 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class RevisionTyper {
 
-    public static final int START_DELAY_MS = 4000;
-    private static final int KEY_HOLD_BASE_MS = 76;
-    private static final int KEY_HOLD_VARIANCE_MS = 44;
     private static final Map<Character, SpecialKey> SPECIAL_KEYS = buildSpecialKeys();
     private static final String RESOURCE_PREFIX = "/resource/";
 
@@ -92,7 +89,10 @@ public final class RevisionTyper {
         }
 
         robot.keyPress(keyCode);
-        delayBetween(KEY_HOLD_BASE_MS + KEY_HOLD_VARIANCE_MS, Math.max(25, KEY_HOLD_BASE_MS - KEY_HOLD_VARIANCE_MS));
+        int minHold = Math.max(TypingTimings.MIN_KEY_HOLD_MS,
+                TypingTimings.KEY_HOLD_BASE_MS - TypingTimings.KEY_HOLD_VARIANCE_MS);
+        int maxHold = TypingTimings.KEY_HOLD_BASE_MS + TypingTimings.KEY_HOLD_VARIANCE_MS;
+        delayBetween(maxHold, minHold);
         robot.keyRelease(keyCode);
 
         if (holdShift) {
@@ -202,7 +202,7 @@ public final class RevisionTyper {
         @Override
         public void run() {
             try {
-                Thread.sleep(START_DELAY_MS);
+                Thread.sleep(TypingSettings.getStartDelayMs());
                 Robot robot = new Robot();
                 typeSource(robot);
             } catch (InterruptedException ignored) {
@@ -221,15 +221,20 @@ public final class RevisionTyper {
             char[] chars = source.toCharArray();
             int index = 0;
             HumanDelayModel delayModel = HumanDelayModel.createDefault();
+            SpeedRegulator speedRegulator = new SpeedRegulator();
 
             while (index < chars.length && !stopRequested) {
                 char current = chars[index];
                 char previous = index == 0 ? '\0' : chars[index - 1];
 
                 long delay = delayModel.computeInterKeyDelay(previous, current, wordCharCount);
-                Thread.sleep(delay);
+                long adjustedDelay = speedRegulator.adjustDelay(delay);
+                if (adjustedDelay > 0) {
+                    Thread.sleep(adjustedDelay);
+                }
 
                 typeCharacter(robot, current);
+                speedRegulator.markCharTyped();
 
                 wordCharCount = Character.isWhitespace(current) ? 0 : wordCharCount + 1;
 

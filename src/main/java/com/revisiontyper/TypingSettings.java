@@ -10,13 +10,18 @@ public final class TypingSettings {
     private static final double AVG_CHARS_PER_WORD = 5.0;
     private static final double MIN_TYPO_CHANCE = 0.0;
     private static final double MAX_TYPO_CHANCE = 0.25;
-    private static final int DEFAULT_WPM = 200;
+    private static final int DEFAULT_WPM = 120;
+    private static final int MAX_WPM_CAP = 120;
+    private static final int MIN_START_DELAY_MS = 0;
+    private static final int MAX_START_DELAY_MS = 8000;
+    private static final int DEFAULT_START_DELAY_MS = 4000;
     private static final int MIN_WPM = wpmFromDelay(MAX_DELAY_MS);
-    private static final int MAX_WPM = wpmFromDelay(MIN_DELAY_MS);
+    private static final int MAX_WPM = Math.min(MAX_WPM_CAP, wpmFromDelay(MIN_DELAY_MS));
     private static volatile int typingDelayMs = delayFromWpm(DEFAULT_WPM);
     private static volatile double typoChance = 0.05;
     private static volatile boolean typosEnabled;
     private static volatile boolean realisticDelays = true;
+    private static volatile int startDelayMs = DEFAULT_START_DELAY_MS;
 
     private TypingSettings() {
     }
@@ -55,6 +60,23 @@ public final class TypingSettings {
         realisticDelays = enabled;
     }
 
+    public static int getStartDelayMs() {
+        return startDelayMs;
+    }
+
+    public static void setStartDelayMs(int delayMs) {
+        int sanitized = Math.max(MIN_START_DELAY_MS, Math.min(MAX_START_DELAY_MS, delayMs));
+        startDelayMs = sanitized;
+    }
+
+    public static int getMinimumStartDelayMs() {
+        return MIN_START_DELAY_MS;
+    }
+
+    public static int getMaximumStartDelayMs() {
+        return MAX_START_DELAY_MS;
+    }
+
     public static int getMinimumWpm() {
         return MIN_WPM;
     }
@@ -76,20 +98,34 @@ public final class TypingSettings {
         return getTypingWpm();
     }
 
+    public static double targetMillisPerChar() {
+        int wpm = getTypingWpm();
+        if (wpm <= 0) {
+            return 60000.0 / (1 * AVG_CHARS_PER_WORD);
+        }
+        return 60000.0 / (wpm * AVG_CHARS_PER_WORD);
+    }
+
     private static int delayFromWpm(int targetWpm) {
         if (targetWpm <= 0) {
             return MIN_DELAY_MS;
         }
         double charsPerMinute = targetWpm * AVG_CHARS_PER_WORD;
         double millisPerChar = 60000.0 / charsPerMinute;
-        int delay = (int) Math.round(millisPerChar);
+        double adjusted = millisPerChar - TypingTimings.averageKeyHoldMs();
+        int delay = (int) Math.round(adjusted);
         return Math.max(MIN_DELAY_MS, Math.min(MAX_DELAY_MS, delay));
     }
 
     private static int wpmFromDelay(int delayMs) {
-        double millisPerChar = Math.max(MIN_DELAY_MS, Math.min(MAX_DELAY_MS, delayMs));
+        double millisPerChar = effectiveMillisPerChar(delayMs);
         double charsPerMinute = 60000.0 / millisPerChar;
         double wordsPerMinute = charsPerMinute / AVG_CHARS_PER_WORD;
         return (int) Math.round(wordsPerMinute);
+    }
+
+    private static double effectiveMillisPerChar(int delayMs) {
+        double clamped = Math.max(MIN_DELAY_MS, Math.min(MAX_DELAY_MS, delayMs));
+        return clamped + TypingTimings.averageKeyHoldMs();
     }
 }

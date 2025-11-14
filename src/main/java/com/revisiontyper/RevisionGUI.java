@@ -18,6 +18,8 @@ public final class RevisionGUI extends JPanel {
     private final JTextArea textArea;
     private final JLabel typingSpeedLabel;
     private final JLabel typoLabel;
+    private final JLabel startDelayLabel;
+    private final JLabel runHintLabel;
     private final JButton runButton;
     private final JButton stopButton;
     private final JLabel statusLabel;
@@ -32,6 +34,8 @@ public final class RevisionGUI extends JPanel {
         textArea = buildTextArea();
         typingSpeedLabel = createLabel(describeDelay());
         typoLabel = createLabel(describeTypoLabel());
+        startDelayLabel = createLabel(describeStartDelay());
+        runHintLabel = createLabel(buildRunHintMessage());
         statusLabel = createLabel("Status: Idle");
         statusLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         statusLabel.setForeground(new Color(180, 220, 255));
@@ -65,14 +69,12 @@ public final class RevisionGUI extends JPanel {
         super.removeNotify();
     }
     private JComponent buildInfoPanel() {
-        JLabel infoLabel = createLabel("Enter text then press Run (" +
-                RevisionTyper.START_DELAY_MS / 1000 +
-                " second delay) or use Ctrl+Enter · Esc stops.");
-        infoLabel.setForeground(Color.WHITE);
+        runHintLabel.setText(buildRunHintMessage());
+        runHintLabel.setForeground(Color.WHITE);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(BG_SECONDARY);
-        panel.add(infoLabel, BorderLayout.WEST);
+        panel.add(runHintLabel, BorderLayout.WEST);
         panel.add(statusLabel, BorderLayout.EAST);
         return panel;
     }
@@ -95,10 +97,11 @@ public final class RevisionGUI extends JPanel {
         buttonRow.add(stopButton);
         buttonRow.add(clearButton);
 
-        JPanel sliders = new JPanel(new GridLayout(1, 2, 12, 0));
+        JPanel sliders = new JPanel(new GridLayout(1, 3, 12, 0));
         sliders.setBackground(BG_SECONDARY);
         sliders.add(wrapSlider("Typing speed", typingSpeedLabel, buildSpeedSlider()));
         sliders.add(wrapSlider("Typo chance", typoLabel, buildTypoSlider()));
+        sliders.add(wrapSlider("Start delay", startDelayLabel, buildStartDelaySlider()));
 
         JPanel checkBoxes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         checkBoxes.setBackground(BG_SECONDARY);
@@ -186,6 +189,22 @@ public final class RevisionGUI extends JPanel {
         return slider;
     }
 
+    private JSlider buildStartDelaySlider() {
+        int min = TypingSettings.getMinimumStartDelayMs();
+        int max = TypingSettings.getMaximumStartDelayMs();
+        JSlider slider = new JSlider(JSlider.HORIZONTAL, min, max, TypingSettings.getStartDelayMs());
+        slider.setBackground(BG_SECONDARY);
+        slider.setMajorTickSpacing(1000);
+        slider.setMinorTickSpacing(250);
+        slider.setPaintTicks(true);
+        slider.addChangeListener(e -> {
+            TypingSettings.setStartDelayMs(slider.getValue());
+            startDelayLabel.setText(describeStartDelay());
+            updateRunHintLabel();
+        });
+        return slider;
+    }
+
     private JButton createButton(String text, Runnable action, Color foreground) {
         JButton button = new JButton(text);
         button.addActionListener(e -> action.run());
@@ -229,7 +248,7 @@ public final class RevisionGUI extends JPanel {
             return;
         }
 
-        pendingStartDeadlineMs = System.currentTimeMillis() + RevisionTyper.START_DELAY_MS;
+        pendingStartDeadlineMs = System.currentTimeMillis() + TypingSettings.getStartDelayMs();
         RevisionTyper.type(text);
         textArea.requestFocusInWindow();
         syncButtonState();
@@ -271,6 +290,36 @@ public final class RevisionGUI extends JPanel {
 
     private static String describeTypoLabel() {
         return (int) Math.round(TypingSettings.getTypoChance() * 100) + "% typo / letter";
+    }
+
+    private static String describeStartDelay() {
+        int delayMs = TypingSettings.getStartDelayMs();
+        if (delayMs == 0) {
+            return "Instant start";
+        }
+        String seconds = delayMs % 1000 == 0
+                ? String.valueOf(delayMs / 1000)
+                : String.format("%.1f", delayMs / 1000.0);
+        return seconds + " s pause";
+    }
+
+    private String buildRunHintMessage() {
+        int delayMs = TypingSettings.getStartDelayMs();
+        if (delayMs == 0) {
+            return "Enter text then press Run (no countdown) or use Ctrl+Enter · Esc stops.";
+        }
+        String seconds = delayMs % 1000 == 0
+                ? String.valueOf(delayMs / 1000)
+                : String.format("%.1f", delayMs / 1000.0);
+        String unit = "second";
+        if (!"1".equals(seconds) && !"1.0".equals(seconds)) {
+            unit = "seconds";
+        }
+        return "Enter text then press Run (" + seconds + " " + unit + " delay) or use Ctrl+Enter · Esc stops.";
+    }
+
+    private void updateRunHintLabel() {
+        runHintLabel.setText(buildRunHintMessage());
     }
 
     private void installKeyboardShortcuts() {

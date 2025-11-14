@@ -16,9 +16,9 @@ class TypingSpeedCalibrationTest {
 
     @Test
     void fastSettingRemainsCloseToTargetWpm() {
-        double wpm = measureWpmAtSetting(200);
-        assertTrue(wpm > 185 && wpm < 215,
-                () -> "Expected ≈200 WPM for fast slider, observed " + wpm);
+        double wpm = measureWpmAtSetting(120);
+        assertTrue(wpm > 114 && wpm < 126,
+                () -> "Expected ≈120 WPM for fast slider, observed " + wpm);
     }
 
     @Test
@@ -45,12 +45,13 @@ class TypingSpeedCalibrationTest {
 
     private double measureWpm(HumanDelayModel model, String text) {
         long totalDelay = 0;
+        int holdPerKey = TypingTimings.averageKeyHoldMs();
         int wordCharCount = 0;
         char previous = '\0';
 
         for (int i = 0; i < text.length(); i++) {
             char current = text.charAt(i);
-            totalDelay += model.computeInterKeyDelay(previous, current, wordCharCount);
+            totalDelay += model.computeInterKeyDelay(previous, current, wordCharCount) + holdPerKey;
             wordCharCount = Character.isWhitespace(current) ? 0 : wordCharCount + 1;
             previous = current;
         }

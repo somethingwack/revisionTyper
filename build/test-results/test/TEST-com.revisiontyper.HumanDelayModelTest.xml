@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.revisiontyper.HumanDelayModelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-11-14T02:29:18.773Z" hostname="Trips-MacBook-Air.local" time="0.007">
+<testsuite name="com.revisiontyper.HumanDelayModelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-11-14T03:13:38.779Z" hostname="Trips-MacBook-Air.local" time="0.003">
   <properties/>
-  <testcase name="baseDelayStaysWithinBoundaries()" classname="com.revisiontyper.HumanDelayModelTest" time="0.005"/>
-  <testcase name="uppercaseLettersTriggerBriefPause()" classname="com.revisiontyper.HumanDelayModelTest" time="0.0"/>
-  <testcase name="punctuationAddsExtraPauseWhenEnabled()" classname="com.revisiontyper.HumanDelayModelTest" time="0.001"/>
-  <testcase name="punctuationMatchesBaseDelayWhenRealismDisabled()" classname="com.revisiontyper.HumanDelayModelTest" time="0.0"/>
+  <testcase name="baseDelayStaysWithinBoundaries()" classname="com.revisiontyper.HumanDelayModelTest" time="0.001"/>
+  <testcase name="uppercaseLettersTriggerBriefPause()" classname="com.revisiontyper.HumanDelayModelTest" time="0.001"/>
+  <testcase name="punctuationAddsExtraPauseWhenEnabled()" classname="com.revisiontyper.HumanDelayModelTest" time="0.0"/>
+  <testcase name="punctuationMatchesBaseDelayWhenRealismDisabled()" classname="com.revisiontyper.HumanDelayModelTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

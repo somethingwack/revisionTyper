@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.revisiontyper.TypingSpeedCalibrationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2025-11-14T02:29:18.782Z" hostname="Trips-MacBook-Air.local" time="0.001">
+<testsuite name="com.revisiontyper.TypingSpeedCalibrationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2025-11-14T03:13:38.770Z" hostname="Trips-MacBook-Air.local" time="0.008">
   <properties/>
-  <testcase name="slowSettingRemainsCloseToTargetWpm()" classname="com.revisiontyper.TypingSpeedCalibrationTest" time="0.0"/>
+  <testcase name="slowSettingRemainsCloseToTargetWpm()" classname="com.revisiontyper.TypingSpeedCalibrationTest" time="0.007"/>
   <testcase name="fastSettingRemainsCloseToTargetWpm()" classname="com.revisiontyper.TypingSpeedCalibrationTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
